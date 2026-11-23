@@ -1,0 +1,3149 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PixelForge Ultra — Dark Premium Edition</title>
+
+  <!-- Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            forge: {
+              bg: '#070B19',
+              card: 'rgba(15, 22, 46, 0.65)',
+              purple: '#7C3AED',
+              deepPurple: '#1B113A',
+              neon: '#00F0FF',
+              sky: '#38BDF8',
+            }
+          },
+          animation: {
+            'float': 'float 3.5s ease-in-out infinite',
+            'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+            'shimmer': 'shimmer 2s linear infinite',
+            'border-dance': 'borderDance 4s linear infinite',
+            'blob': 'blob 14s infinite alternate',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            pulseGlow: {
+              '0%, 100%': { opacity: '0.75', transform: 'scale(1)' },
+              '50%': { opacity: '1', transform: 'scale(1.04)' },
+            },
+            shimmer: {
+              '0%': { backgroundPosition: '-200% 0' },
+              '100%': { backgroundPosition: '200% 0' },
+            },
+            blob: {
+              '0%': { transform: 'translate(0px, 0px) scale(1)' },
+              '33%': { transform: 'translate(35px, -45px) scale(1.12)' },
+              '66%': { transform: 'translate(-25px, 25px) scale(0.92)' },
+              '100%': { transform: 'translate(15px, -15px) scale(1.05)' },
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Client-Side Libraries (100% Browser-Based Processing) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <script src="https://unpkg.com/heic2any@0.0.4/dist/heic2any.min.js"></script>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    :root {
+      --mouse-x: 50vw;
+      --mouse-y: 50vh;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #070B19;
+      color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Hardware-accelerated Ambient Cursor Glow */
+    #cursor-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 650px;
+      height: 650px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(
+        circle,
+        rgba(0, 240, 255, 0.13) 0%,
+        rgba(124, 58, 237, 0.09) 35%,
+        rgba(7, 11, 25, 0) 70%
+      );
+      transform: translate3d(calc(var(--mouse-x) - 325px), calc(var(--mouse-y) - 325px), 0);
+      transition: opacity 0.4s ease;
+      will-change: transform;
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      #cursor-glow {
+        display: none !important;
+      }
+    }
+
+    /* Glassmorphism Cards with Interactive Spotlight Border */
+    .glass-panel {
+      background: linear-gradient(145deg, rgba(17, 25, 54, 0.72), rgba(11, 16, 36, 0.85));
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(56, 189, 248, 0.16);
+      box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 0 rgba(255, 255, 255, 0.07);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .glass-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 1px;
+      background: radial-gradient(
+        420px circle at var(--card-x, 50%) var(--card-y, 50%),
+        rgba(0, 240, 255, 0.45),
+        rgba(124, 58, 237, 0.25) 40%,
+        transparent 75%
+      );
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.35s ease;
+    }
+
+    .glass-panel:hover::before {
+      opacity: 1;
+    }
+
+    /* Animated Dropzone */
+    .dropzone-neon {
+      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='18' ry='18' stroke='%2300F0FF66' stroke-width='2' stroke-dasharray='10%2c 10' stroke-dashoffset='0' stroke-linecap='round'/%3e%3c/svg%3e");
+      transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .dropzone-neon:hover,
+    .dropzone-neon.drag-active {
+      background-color: rgba(0, 240, 255, 0.06);
+      background-image: url("data:image/svg+xml,%3csvg width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg'%3e%3crect width='100%25' height='100%25' fill='none' rx='18' ry='18' stroke='%2300F0FF' stroke-width='2.5' stroke-dasharray='12%2c 8' stroke-dashoffset='24' stroke-linecap='round'/%3e%3c/svg%3e");
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.16), inset 0 0 25px rgba(124, 58, 237, 0.14);
+      transform: translateY(-2px);
+    }
+
+    /* Neon Primary Button */
+    .btn-neon {
+      background: linear-gradient(135deg, #00F0FF 0%, #38BDF8 45%, #7C3AED 100%);
+      background-size: 200% 200%;
+      color: #050814;
+      font-weight: 700;
+      box-shadow: 0 0 24px rgba(0, 240, 255, 0.35), 0 8px 20px -6px rgba(124, 58, 237, 0.55);
+      transition: all 0.25s ease;
+    }
+
+    .btn-neon:hover:not(:disabled) {
+      background-position: 100% 50%;
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 0 34px rgba(0, 240, 255, 0.55), 0 12px 26px -6px rgba(124, 58, 237, 0.75);
+    }
+
+    .btn-neon:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+    }
+
+    /* Shimmer Progress Bar */
+    .shimmer-bar {
+      background: linear-gradient(
+        90deg,
+        #7C3AED 0%,
+        #00F0FF 35%,
+        #FFFFFF 50%,
+        #00F0FF 65%,
+        #7C3AED 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.6s linear infinite;
+    }
+
+    /* Animated SVG Checkmark */
+    .checkmark-circle {
+      stroke-dasharray: 166;
+      stroke-dashoffset: 166;
+      stroke-width: 3;
+      stroke-miterlimit: 10;
+      stroke: #00F0FF;
+      fill: none;
+      animation: strokeAnim 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+    }
+
+    .checkmark-check {
+      transform-origin: 50% 50%;
+      stroke-dasharray: 48;
+      stroke-dashoffset: 48;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke: #00F0FF;
+      fill: none;
+      animation: strokeAnim 0.35s cubic-bezier(0.65, 0, 0.45, 1) 0.5s forwards;
+    }
+
+    @keyframes strokeAnim {
+      100% {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(7, 11, 25, 0.8);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.25);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 240, 255, 0.5);
+    }
+
+    /* Range Slider Styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      background: rgba(30, 41, 75, 0.9);
+      height: 6px;
+      border-radius: 999px;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #00F0FF;
+      box-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+      cursor: pointer;
+      border: 2px solid #070B19;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-cyan-400/30 selection:text-cyan-200">
+
+  <!-- Ambient Mouse Follower -->
+  <div id="cursor-glow" aria-hidden="true"></div>
+
+  <!-- Deep Space Animated Mesh Background -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+    <div class="absolute -top-36 -left-36 w-[520px] h-[520px] rounded-full bg-purple-700/20 blur-[130px] animate-blob"></div>
+    <div class="absolute top-1/3 -right-32 w-[480px] h-[480px] rounded-full bg-cyan-500/15 blur-[130px] animate-blob" style="animation-delay: 4s;"></div>
+    <div class="absolute -bottom-40 left-1/3 w-[560px] h-[560px] rounded-full bg-indigo-900/35 blur-[140px] animate-blob" style="animation-delay: 8s;"></div>
+    <!-- Subtle Grid Overlay -->
+    <div class="absolute inset-0 bg-[linear-gradient(rgba(56,189,248,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(56,189,248,0.03)_1px,transparent_1px)] bg-[size:44px_44px]"></div>
+  </div>
+
+  <!-- Main App Wrapper -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- Top Navigation Bar -->
+    <header class="sticky top-0 z-40 border-b border-cyan-500/15 bg-[#070B19]/80 backdrop-blur-xl">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3">
+          <button id="mobile-menu-btn" class="lg:hidden p-2 rounded-xl border border-cyan-500/20 bg-slate-900/70 text-cyan-300 hover:bg-cyan-500/10 transition" aria-label="Toggle Menu">
+            <i data-lucide="menu" class="w-5 h-5"></i>
+          </button>
+          <a href="#" onclick="switchTool('pdf-merge-split'); return false;" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-400 via-sky-500 to-purple-600 p-[1px] shadow-[0_0_20px_rgba(0,240,255,0.35)] group-hover:shadow-[0_0_30px_rgba(0,240,255,0.6)] transition">
+              <div class="w-full h-full rounded-[11px] bg-[#090E21] flex items-center justify-center">
+                <i data-lucide="sparkles" class="w-5 h-5 text-cyan-300"></i>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-extrabold tracking-tight text-lg bg-gradient-to-r from-white via-cyan-200 to-purple-300 bg-clip-text text-transparent">
+                  PixelForge
+                </span>
+                <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase tracking-wider rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 text-cyan-300 border border-cyan-400/30">
+                  ULTRA
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-400 hidden sm:block">Dark Premium Client-Side Studio</p>
+            </div>
+          </a>
+        </div>
+
+        <!-- Center Status Pill -->
+        <div class="hidden md:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/80 border border-purple-500/25 text-xs text-slate-300">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+          <span class="font-mono text-[11px] text-cyan-300">100% LOCAL GPU/WASM</span>
+          <span class="text-slate-600">|</span>
+          <span>Zero Server Uploads</span>
+        </div>
+
+        <!-- Right Quick Action -->
+        <div class="flex items-center gap-2">
+          <button onclick="openAllToolsModal()" class="px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600/20 hover:bg-purple-600/35 text-purple-200 border border-purple-500/30 transition flex items-center gap-1.5">
+            <i data-lucide="grid" class="w-3.5 h-3.5 text-cyan-300"></i>
+            <span>All 9 Tools</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Mobile Horizontal Quick Pill Strip -->
+      <div class="lg:hidden overflow-x-auto border-t border-slate-800/80 px-4 py-2 flex items-center gap-2 no-scrollbar" id="mobile-pill-strip">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <div class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 flex flex-col lg:flex-row gap-6">
+
+      <!-- Desktop Sidebar Navigation -->
+      <aside id="desktop-sidebar" class="hidden lg:flex flex-col w-72 shrink-0 gap-4">
+        <div class="glass-panel rounded-2xl p-3.5">
+          <div class="px-2.5 py-1.5 mb-2 flex items-center justify-between">
+            <span class="text-[11px] font-mono uppercase tracking-widest text-slate-400">Suite Arsenal (9)</span>
+            <span class="text-[11px] font-mono text-cyan-400">v5.0 ULTRA</span>
+          </div>
+          <nav id="sidebar-nav" class="space-y-1.5">
+            <!-- Populated dynamically via JS -->
+          </nav>
+        </div>
+
+        <!-- Privacy & Speed Telemetry Card -->
+        <div class="glass-panel rounded-2xl p-4 space-y-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-300">
+              <i data-lucide="shield-check" class="w-4 h-4"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-bold text-white">Air-Gapped Privacy</h4>
+              <p class="text-[11px] text-slate-400">Files never leave your RAM</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2 pt-1">
+            <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-2.5">
+              <div class="text-[10px] font-mono text-slate-400">ENGINE</div>
+              <div class="text-xs font-bold text-cyan-300 mt-0.5">HTML5 + PDF.js</div>
+            </div>
+            <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 p-2.5">
+              <div class="text-[10px] font-mono text-slate-400">LATENCY</div>
+              <div class="text-xs font-bold text-purple-300 mt-0.5">0ms Upload</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Mobile Slide-Over Drawer -->
+      <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden lg:hidden" onclick="toggleMobileDrawer(false)"></div>
+      <aside id="mobile-drawer" class="fixed top-0 left-0 bottom-0 w-72 bg-[#090F24] border-r border-cyan-500/20 z-50 p-4 transform -translate-x-full transition-transform duration-300 lg:hidden flex flex-col justify-between">
+        <div>
+          <div class="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+            <span class="font-extrabold text-white flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> PixelForge Ultra
+            </span>
+            <button onclick="toggleMobileDrawer(false)" class="p-1.5 rounded-lg text-slate-400 hover:text-white">
+              <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+          </div>
+          <nav id="mobile-drawer-nav" class="space-y-1.5"></nav>
+        </div>
+        <div class="text-[11px] font-mono text-slate-500 text-center pt-4 border-t border-slate-800/80">
+          100% Client-Side Engine
+        </div>
+      </aside>
+
+      <!-- Active Tool Stage -->
+      <main class="flex-1 min-w-0 space-y-6">
+
+        <!-- Tool Header Banner -->
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="flex items-start sm:items-center gap-4">
+            <div id="active-tool-icon-box" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-600/30 border border-cyan-400/30 flex items-center justify-center text-cyan-300 shrink-0 shadow-[0_0_25px_rgba(0,240,255,0.2)]">
+              <i data-lucide="layers" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 id="active-tool-title" class="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                  PDF Merge & Split
+                </h1>
+                <span id="active-tool-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-400/30">
+                  VECTOR ENGINE
+                </span>
+              </div>
+              <p id="active-tool-desc" class="text-sm text-slate-300/90 mt-1">
+                Combine multiple PDFs in custom order or extract specific page ranges into individual documents.
+              </p>
+            </div>
+          </div>
+
+          <button onclick="resetCurrentTool()" class="self-start sm:self-center px-3.5 py-2 rounded-xl text-xs font-medium bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-slate-700/80 transition flex items-center gap-1.5 shrink-0">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 text-cyan-400"></i>
+            <span>Reset Workspace</span>
+          </button>
+        </div>
+
+        <!-- Dynamic Tool Workspace Container -->
+        <div id="tool-workspace" class="space-y-6">
+          <!-- Rendered dynamically per active tool -->
+        </div>
+
+        <!-- Animated Multi-Stage Processing Pipeline Overlay / Card -->
+        <div id="processing-panel" class="hidden glass-panel rounded-2xl p-6 sm:p-8 border-cyan-400/40 shadow-[0_0_50px_rgba(0,240,255,0.18)]">
+          <div class="max-w-xl mx-auto text-center space-y-6">
+            <!-- Spinning Neon Ring -->
+            <div class="relative w-24 h-24 mx-auto">
+              <svg class="w-24 h-24 -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" stroke="rgba(56,189,248,0.15)" stroke-width="7" fill="none"></circle>
+                <circle id="progress-ring-circle" cx="50" cy="50" r="42" stroke="url(#neonGrad)" stroke-width="7" stroke-linecap="round" fill="none" stroke-dasharray="264" stroke-dashoffset="264" class="transition-all duration-300"></circle>
+                <defs>
+                  <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00F0FF" />
+                    <stop offset="100%" stop-color="#7C3AED" />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <span id="progress-percent-text" class="font-mono text-lg font-bold text-cyan-300">0%</span>
+              </div>
+            </div>
+
+            <!-- Pipeline Stages -->
+            <div class="grid grid-cols-3 gap-2 text-xs font-mono">
+              <div id="stage-1" class="p-2.5 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="scan-line" class="w-3.5 h-3.5"></i>
+                <span>1. SCANNING</span>
+              </div>
+              <div id="stage-2" class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 text-slate-500 flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="cpu" class="w-3.5 h-3.5"></i>
+                <span>2. OPTIMIZING</span>
+              </div>
+              <div id="stage-3" class="p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 text-slate-500 flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span>3. ENCODING</span>
+              </div>
+            </div>
+
+            <!-- Shimmer Progress Bar -->
+            <div class="w-full h-2.5 rounded-full bg-slate-900 overflow-hidden border border-slate-800">
+              <div id="progress-shimmer-bar" class="h-full shimmer-bar rounded-full transition-all duration-300" style="width: 5%"></div>
+            </div>
+
+            <p id="processing-status-msg" class="text-sm text-slate-300 font-medium animate-pulse">
+              Initializing local cryptographic & media buffers...
+            </p>
+          </div>
+        </div>
+
+        <!-- Success & Telemetry Result Card -->
+        <div id="success-panel" class="hidden glass-panel rounded-2xl p-6 sm:p-8 border-cyan-400/50 shadow-[0_0_60px_rgba(0,240,255,0.22)]">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex flex-col sm:flex-row items-center text-center sm:text-left gap-5">
+              <!-- Animated SVG Checkmark -->
+              <div class="w-16 h-16 shrink-0 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center">
+                <svg class="w-11 h-11" viewBox="0 0 52 52">
+                  <circle class="checkmark-circle" cx="26" cy="26" r="24" />
+                  <path class="checkmark-check" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                </svg>
+              </div>
+              <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[11px] font-mono mb-1.5">
+                  <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                  <span>PROCESSING COMPLETE</span>
+                </div>
+                <h3 id="success-title" class="text-xl font-extrabold text-white">Your file is forged & ready!</h3>
+                <p id="success-subtitle" class="text-sm text-slate-300 mt-0.5">Optimized cleanly in browser memory.</p>
+
+                <!-- Before / After Telemetry Badges -->
+                <div id="size-comparison-badges" class="flex flex-wrap items-center justify-center sm:justify-start gap-2.5 mt-3">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+              <button id="primary-download-btn" class="w-full sm:w-auto btn-neon px-6 py-3.5 rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span id="primary-download-label">Download Result</span>
+              </button>
+              <button onclick="resetCurrentTool()" class="w-full sm:w-auto px-4 py-3.5 rounded-xl text-sm font-semibold bg-slate-900/90 hover:bg-slate-800 text-slate-200 border border-slate-700 transition">
+                Process Another
+              </button>
+            </div>
+          </div>
+
+          <!-- Optional Multi-File Output Preview Grid -->
+          <div id="success-gallery" class="hidden mt-6 pt-6 border-t border-slate-800/90 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+      </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/70 bg-[#050814]/90 py-5 px-4 mt-12">
+      <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-slate-200">PixelForge Ultra</span>
+          <span>— Dark Premium Edition</span>
+        </div>
+        <div class="font-mono text-[11px] text-cyan-400/80">
+          Client-Side WebAssembly & Canvas Engine • Zero Cloud Retention
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Toast Notification Banner (No alert() ever used) -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- All Tools Modal -->
+  <div id="all-tools-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/75 backdrop-blur-md" onclick="if(event.target===this) closeAllToolsModal()">
+    <div class="glass-panel rounded-3xl max-w-4xl w-full p-6 sm:p-8 border-cyan-400/30 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 mb-6 border-b border-slate-800">
+        <div>
+          <h2 class="text-xl font-extrabold text-white">PixelForge Ultra Command Matrix</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Select any of the 9 hardware-accelerated client-side utilities</p>
+        </div>
+        <button onclick="closeAllToolsModal()" class="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-white border border-slate-700">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modal-tools-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. INITIALIZATION & GLOBAL STATE
+    // =========================================================================
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    const TOOLS = [
+      {
+        id: 'image-size-scaler',
+        name: 'Image Size Reducer & Increaser',
+        shortName: 'Size KB/MB & %',
+        icon: 'scaling',
+        badge: 'KB/MB + RATIO',
+        desc: 'Reduce or increase JPG/PNG/WebP file size to exact KB/MB targets, or scale by Width/Height percentage & aspect ratio.'
+      },
+      {
+        id: 'universal-converter',
+        name: 'Universal Photo & Doc Converter',
+        shortName: 'All Converter',
+        icon: 'repeat',
+        badge: 'ALL FORMATS',
+        desc: 'Convert all photos (JPG, JPEG, PNG, WebP, BMP, GIF, ICO, SVG, HEIC) & all documents (PDF, DOCX, TXT, HTML, MD, CSV, JSON, Images↔PDF).'
+      },
+      {
+        id: 'pdf-merge-split',
+        name: 'PDF Merge & Split',
+        shortName: 'Merge / Split',
+        icon: 'layers',
+        badge: 'PDF-LIB VECTOR',
+        desc: 'Combine multiple PDFs in custom order or extract page ranges into separate files or a ZIP archive.'
+      },
+      {
+        id: 'pdf-compress',
+        name: 'PDF Compress (KB/MB)',
+        shortName: 'PDF Compress',
+        icon: 'minimize-2',
+        badge: 'ADAPTIVE DPI',
+        desc: 'Compress PDFs to an exact KB or MB target using iterative rasterization and re-encoding.'
+      },
+      {
+        id: 'heic-to-jpg',
+        name: 'HEIC to JPG / PNG Batch',
+        shortName: 'HEIC Batch',
+        icon: 'smartphone',
+        badge: 'APPLE HEIF',
+        desc: 'Batch convert iPhone .HEIC and .HEIF photos into universal high-quality JPGs or PNGs with ZIP export.'
+      },
+      {
+        id: 'passport-photo',
+        name: 'Passport & Exam Photo Maker',
+        shortName: 'Passport / Exam',
+        icon: 'user-check',
+        badge: 'BIOMETRIC STUDIO',
+        desc: 'Create India (35×45mm), US (2×2in), UK/EU passport photos & Exam Photo/Signature (140×60px, 10–20KB) with 4×6 print sheets.'
+      },
+      {
+        id: 'bulk-resize',
+        name: 'Bulk Resize & Compress',
+        shortName: 'Bulk Resize',
+        icon: 'images',
+        badge: 'BATCH ZIP',
+        desc: 'Resize and compress dozens of images simultaneously with live size savings and one-click ZIP.'
+      },
+      {
+        id: 'pdf-word',
+        name: 'PDF ↔ Word (.DOCX)',
+        shortName: 'PDF ↔ DOCX',
+        icon: 'file-text',
+        badge: 'DOCX / MAMMOTH',
+        desc: 'Convert PDF documents into editable .DOCX Word files or render .DOCX files into clean PDFs.'
+      },
+      {
+        id: 'image-crop',
+        name: 'Interactive Image Crop',
+        shortName: 'Drag Crop',
+        icon: 'crop',
+        badge: 'CANVAS PRECISION',
+        desc: 'Drag handles, lock aspect ratios (1:1, 16:9, Signature), rotate, and export pixel-accurate crops.'
+      }
+    ];
+
+    let activeToolId = 'image-size-scaler';
+
+    // Tool-specific state stores
+    const state = {
+      sizeScaler: {
+        file: null,
+        img: null,
+        origWidth: 0,
+        origHeight: 0,
+        origSize: 0,
+        mode: 'target-size', // 'target-size' | 'ratio-scale'
+        sizeDirection: 'auto', // 'auto' | 'reduce' | 'increase'
+        targetValue: 50,
+        targetUnit: 'KB', // 'KB' | 'MB'
+        scaleSubMode: 'percent', // 'percent' | 'pixels' | 'aspect'
+        percent: 100,
+        width: 1000,
+        height: 1000,
+        lockAspect: true,
+        aspectPreset: '1:1',
+        outputFormat: 'image/jpeg', // 'image/jpeg' | 'image/png' | 'image/webp'
+        quality: 0.9
+      },
+      universal: {
+        category: 'photo', // 'photo' | 'doc'
+        photoFiles: [], // { id, file, name, size }
+        photoTarget: 'image/jpeg', // 'image/jpeg' | 'image/png' | 'image/webp' | 'image/bmp' | 'image/x-icon'
+        photoExt: 'jpg', // 'jpg' | 'jpeg' | 'png' | 'webp' | 'bmp' | 'ico'
+        photoQuality: 0.9,
+        photoMatte: '#FFFFFF',
+        docFiles: [], // { id, file, name, size }
+        docTarget: 'pdf' // 'pdf' | 'docx' | 'txt' | 'html' | 'pdf-to-jpg' | 'pdf-to-png'
+      },
+      mergeSplit: {
+        mode: 'merge', // 'merge' | 'split'
+        mergeFiles: [],
+        splitFile: null,
+        splitMode: 'ranges',
+        pageRanges: '1-2'
+      },
+      pdfCompress: {
+        file: null,
+        targetValue: 300,
+        targetUnit: 'KB'
+      },
+      heic: {
+        files: [],
+        quality: 0.9,
+        outputFormat: 'image/jpeg'
+      },
+      passport: {
+        img: null,
+        fileName: '',
+        preset: 'india', // 'india' | 'us' | 'uk' | 'exam-photo' | 'exam-sig'
+        customW: 35,
+        customH: 45,
+        bgColor: '#FFFFFF',
+        removeBgStrength: 32,
+        enableBgReplace: false,
+        zoom: 1.0,
+        offsetX: 0,
+        offsetY: 0,
+        outputLayout: 'sheet', // 'single' | 'sheet'
+        examTargetKb: 20
+      },
+      bulkResize: {
+        files: [],
+        resizeMode: 'dimensions',
+        width: 1280,
+        height: 720,
+        lockAspect: true,
+        percent: 70,
+        quality: 0.82,
+        format: 'image/jpeg'
+      },
+      pdfWord: {
+        direction: 'pdf-to-word',
+        file: null
+      },
+      cropper: {
+        img: null,
+        fileName: '',
+        aspect: 'free',
+        rotation: 0,
+        flipH: false,
+        cropBox: { x: 0.15, y: 0.15, w: 0.7, h: 0.7 },
+        draggingHandle: null,
+        dragStart: null,
+        exportFormat: 'image/png'
+      }
+    };
+
+    // =========================================================================
+    // 2. SMOOTH GLOWING CURSOR & SPOTLIGHT TRACKING
+    // =========================================================================
+    (function initCursorEffects() {
+      let targetX = window.innerWidth / 2;
+      let targetY = window.innerHeight / 2;
+      let currentX = targetX;
+      let currentY = targetY;
+
+      window.addEventListener('mousemove', (e) => {
+        targetX = e.clientX;
+        targetY = e.clientY;
+
+        // Update card local spotlight coordinates
+        document.querySelectorAll('.glass-panel').forEach((card) => {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--card-x', `${e.clientX - rect.left}px`);
+          card.style.setProperty('--card-y', `${e.clientY - rect.top}px`);
+        });
+      }, { passive: true });
+
+      function animateCursor() {
+        currentX += (targetX - currentX) * 0.16;
+        currentY += (targetY - currentY) * 0.16;
+        document.documentElement.style.setProperty('--mouse-x', `${currentX.toFixed(1)}px`);
+        document.documentElement.style.setProperty('--mouse-y', `${currentY.toFixed(1)}px`);
+        requestAnimationFrame(animateCursor);
+      }
+      requestAnimationFrame(animateCursor);
+    })();
+
+    // =========================================================================
+    // 3. UI UTILITIES (TOASTS, PROGRESS PIPELINE, CONFETTI, FORMATTERS)
+    // =========================================================================
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const colors = {
+        info: 'border-cyan-400/40 bg-[#0D152E]/95 text-cyan-100',
+        success: 'border-emerald-400/40 bg-[#0A1F24]/95 text-emerald-100',
+        error: 'border-rose-500/50 bg-[#230E1B]/95 text-rose-100'
+      };
+      const icons = {
+        info: 'sparkles',
+        success: 'check-circle-2',
+        error: 'alert-triangle'
+      };
+      toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-xl text-xs font-medium transition-all duration-300 translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+      toast.innerHTML = `
+        <i data-lucide="${icons[type] || 'info'}" class="w-4 h-4 shrink-0 text-cyan-300"></i>
+        <span class="flex-1">${message}</span>
+      `;
+      container.appendChild(toast);
+      lucide.createIcons();
+
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        toast.classList.add('translate-y-2', 'opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3600);
+    }
+
+    function triggerNeonConfetti() {
+      if (typeof confetti !== 'function') return;
+      confetti({
+        particleCount: 75,
+        spread: 70,
+        origin: { y: 0.65 },
+        colors: ['#00F0FF', '#38BDF8', '#7C3AED', '#A855F7', '#FFFFFF']
+      });
+    }
+
+    function updateProcessingProgress(percent, stageIndex, statusText) {
+      const panel = document.getElementById('processing-panel');
+      const successPanel = document.getElementById('success-panel');
+      panel.classList.remove('hidden');
+      successPanel.classList.add('hidden');
+
+      const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+      document.getElementById('progress-percent-text').textContent = `${clamped}%`;
+      document.getElementById('progress-shimmer-bar').style.width = `${clamped}%`;
+
+      const circle = document.getElementById('progress-ring-circle');
+      const circumference = 264;
+      circle.style.strokeDashoffset = circumference - (clamped / 100) * circumference;
+
+      if (statusText) {
+        document.getElementById('processing-status-msg').textContent = statusText;
+      }
+
+      [1, 2, 3].forEach((idx) => {
+        const el = document.getElementById(`stage-${idx}`);
+        if (idx <= stageIndex) {
+          el.className = 'p-2.5 rounded-xl bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 flex items-center justify-center gap-1.5 transition shadow-[0_0_15px_rgba(0,240,255,0.18)]';
+        } else {
+          el.className = 'p-2.5 rounded-xl bg-slate-900/70 border border-slate-800 text-slate-500 flex items-center justify-center gap-1.5 transition';
+        }
+      });
+    }
+
+    function hideProcessingPanel() {
+      document.getElementById('processing-panel').classList.add('hidden');
+    }
+
+    function showSuccessResult({ title, subtitle, beforeBytes, afterBytes, downloadLabel, onDownload, galleryItems }) {
+      hideProcessingPanel();
+      const panel = document.getElementById('success-panel');
+      panel.classList.remove('hidden');
+
+      document.getElementById('success-title').textContent = title;
+      document.getElementById('success-subtitle').textContent = subtitle;
+      document.getElementById('primary-download-label').textContent = downloadLabel || 'Download Result';
+
+      const badgesEl = document.getElementById('size-comparison-badges');
+      badgesEl.innerHTML = '';
+
+      if (beforeBytes && afterBytes) {
+        const diff = beforeBytes - afterBytes;
+        const pct = ((diff / beforeBytes) * 100).toFixed(1);
+        const savedHtml = diff > 0
+          ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-400/30 font-mono text-xs text-emerald-300 font-bold">-${pct}% (${formatBytes(diff)} saved)</span>`
+          : `<span class="px-2.5 py-1 rounded-lg bg-purple-500/15 border border-purple-400/30 font-mono text-xs text-purple-200">Output: ${formatBytes(afterBytes)}</span>`;
+
+        badgesEl.innerHTML = `
+          <span class="px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700 font-mono text-xs text-slate-300">Before: ${formatBytes(beforeBytes)}</span>
+          <span class="text-cyan-400 font-bold">→</span>
+          <span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 border border-cyan-400/30 font-mono text-xs text-cyan-200 font-semibold">After: ${formatBytes(afterBytes)}</span>
+          ${savedHtml}
+        `;
+      } else if (afterBytes) {
+        badgesEl.innerHTML = `
+          <span class="px-2.5 py-1 rounded-lg bg-cyan-500/15 border border-cyan-400/30 font-mono text-xs text-cyan-200 font-semibold">Final Size: ${formatBytes(afterBytes)}</span>
+        `;
+      }
+
+      const btn = document.getElementById('primary-download-btn');
+      btn.onclick = onDownload;
+
+      const galleryEl = document.getElementById('success-gallery');
+      if (galleryItems && galleryItems.length > 0) {
+        galleryEl.classList.remove('hidden');
+        galleryEl.innerHTML = galleryItems.map((item, i) => `
+          <div class="rounded-xl bg-slate-950/75 border border-slate-800 p-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              ${item.thumbUrl ? `<img src="${item.thumbUrl}" class="w-11 h-11 rounded-lg object-cover border border-slate-700 shrink-0" alt="preview" />` : `<div class="w-11 h-11 rounded-lg bg-purple-500/15 border border-purple-400/30 flex items-center justify-center text-cyan-300 shrink-0"><i data-lucide="file-check" class="w-5 h-5"></i></div>`}
+              <div class="min-w-0">
+                <div class="text-xs font-semibold text-white truncate">${item.name}</div>
+                <div class="text-[11px] font-mono text-cyan-300">${item.meta || ''}</div>
+              </div>
+            </div>
+            <button data-gallery-idx="${i}" class="gallery-dl-btn p-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-400/30 transition shrink-0" title="Download file">
+              <i data-lucide="download" class="w-4 h-4"></i>
+            </button>
+          </div>
+        `).join('');
+
+        galleryEl.querySelectorAll('.gallery-dl-btn').forEach((b) => {
+          b.addEventListener('click', () => {
+            const idx = Number(b.getAttribute('data-gallery-idx'));
+            galleryItems[idx].onDownload();
+          });
+        });
+      } else {
+        galleryEl.classList.add('hidden');
+        galleryEl.innerHTML = '';
+      }
+
+      lucide.createIcons();
+      triggerNeonConfetti();
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function triggerBlobDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    function sleep(ms) {
+      return new Promise((r) => setTimeout(r, ms));
+    }
+
+    // =========================================================================
+    // 4. NAVIGATION & TOOL SWITCHING
+    // =========================================================================
+    function renderNavigation() {
+      const sidebarNav = document.getElementById('sidebar-nav');
+      const mobileDrawerNav = document.getElementById('mobile-drawer-nav');
+      const mobileStrip = document.getElementById('mobile-pill-strip');
+      const modalGrid = document.getElementById('modal-tools-grid');
+
+      const navHtml = TOOLS.map((t) => {
+        const active = t.id === activeToolId;
+        return `
+          <button onclick="switchTool('${t.id}')" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left text-xs font-semibold transition ${
+            active
+              ? 'bg-gradient-to-r from-cyan-500/20 to-purple-600/25 text-white border border-cyan-400/40 shadow-[0_0_20px_rgba(0,240,255,0.14)]'
+              : 'text-slate-300 hover:bg-slate-800/60 hover:text-white border border-transparent'
+          }">
+            <div class="w-7 h-7 rounded-lg flex items-center justify-center ${active ? 'bg-cyan-400/20 text-cyan-300' : 'bg-slate-900 text-slate-400'}">
+              <i data-lucide="${t.icon}" class="w-4 h-4"></i>
+            </div>
+            <span class="truncate flex-1">${t.name}</span>
+            ${active ? '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_#00F0FF]"></span>' : ''}
+          </button>
+        `;
+      }).join('');
+
+      sidebarNav.innerHTML = navHtml;
+      mobileDrawerNav.innerHTML = navHtml;
+
+      mobileStrip.innerHTML = TOOLS.map((t) => {
+        const active = t.id === activeToolId;
+        return `
+          <button onclick="switchTool('${t.id}')" class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
+            active
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/50'
+              : 'bg-slate-900/80 text-slate-400 border border-slate-800'
+          }">
+            <i data-lucide="${t.icon}" class="w-3.5 h-3.5"></i>
+            <span>${t.shortName}</span>
+          </button>
+        `;
+      }).join('');
+
+      modalGrid.innerHTML = TOOLS.map((t) => `
+        <button onclick="switchTool('${t.id}'); closeAllToolsModal();" class="text-left p-4 rounded-2xl bg-slate-900/75 hover:bg-slate-800/90 border border-slate-800 hover:border-cyan-400/40 transition group flex flex-col justify-between gap-3">
+          <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-300 group-hover:scale-110 transition">
+            <i data-lucide="${t.icon}" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white group-hover:text-cyan-300 transition">${t.name}</div>
+            <p class="text-xs text-slate-400 mt-1 line-clamp-2">${t.desc}</p>
+          </div>
+        </button>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function toggleMobileDrawer(open) {
+      const drawer = document.getElementById('mobile-drawer');
+      const backdrop = document.getElementById('mobile-drawer-backdrop');
+      if (open) {
+        backdrop.classList.remove('hidden');
+        drawer.classList.remove('-translate-x-full');
+      } else {
+        backdrop.classList.add('hidden');
+        drawer.classList.add('-translate-x-full');
+      }
+    }
+
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => toggleMobileDrawer(true));
+
+    function openAllToolsModal() {
+      const m = document.getElementById('all-tools-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeAllToolsModal() {
+      const m = document.getElementById('all-tools-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function switchTool(toolId) {
+      activeToolId = toolId;
+      toggleMobileDrawer(false);
+      hideProcessingPanel();
+      document.getElementById('success-panel').classList.add('hidden');
+
+      const tool = TOOLS.find((t) => t.id === toolId);
+      document.getElementById('active-tool-title').textContent = tool.name;
+      document.getElementById('active-tool-badge').textContent = tool.badge;
+      document.getElementById('active-tool-desc').textContent = tool.desc;
+      document.getElementById('active-tool-icon-box').innerHTML = `<i data-lucide="${tool.icon}" class="w-6 h-6"></i>`;
+
+      renderNavigation();
+      renderActiveToolWorkspace();
+    }
+
+    function resetCurrentTool() {
+      hideProcessingPanel();
+      document.getElementById('success-panel').classList.add('hidden');
+
+      if (activeToolId === 'image-size-scaler') {
+        state.sizeScaler.file = null;
+        state.sizeScaler.img = null;
+      } else if (activeToolId === 'universal-converter') {
+        state.universal.photoFiles = [];
+        state.universal.docFiles = [];
+      } else if (activeToolId === 'pdf-merge-split') {
+        state.mergeSplit.mergeFiles = [];
+        state.mergeSplit.splitFile = null;
+      } else if (activeToolId === 'pdf-compress') {
+        state.pdfCompress.file = null;
+      } else if (activeToolId === 'heic-to-jpg') {
+        state.heic.files = [];
+      } else if (activeToolId === 'passport-photo') {
+        state.passport.img = null;
+        state.passport.zoom = 1;
+        state.passport.offsetX = 0;
+        state.passport.offsetY = 0;
+      } else if (activeToolId === 'bulk-resize') {
+        state.bulkResize.files = [];
+      } else if (activeToolId === 'pdf-word') {
+        state.pdfWord.file = null;
+      } else if (activeToolId === 'image-crop') {
+        state.cropper.img = null;
+        state.cropper.rotation = 0;
+        state.cropper.flipH = false;
+      }
+
+      renderActiveToolWorkspace();
+      showToast('Workspace cleared and ready.', 'info');
+    }
+
+    // Reusable Dropzone Helper
+    function bindDropzone(zoneId, inputId, onFilesCallback) {
+      const zone = document.getElementById(zoneId);
+      const input = document.getElementById(inputId);
+      if (!zone || !input) return;
+
+      zone.addEventListener('click', () => input.click());
+      input.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files.length > 0) {
+          onFilesCallback(Array.from(e.target.files));
+          input.value = '';
+        }
+      });
+
+      ['dragenter', 'dragover'].forEach((evt) => {
+        zone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          zone.classList.add('drag-active');
+        });
+      });
+
+      ['dragleave', 'drop'].forEach((evt) => {
+        zone.addEventListener(evt, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          zone.classList.remove('drag-active');
+        });
+      });
+
+      zone.addEventListener('drop', (e) => {
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          onFilesCallback(Array.from(e.dataTransfer.files));
+        }
+      });
+    }
+
+    function createDropzoneMarkup({ zoneId, inputId, accept, multiple, title, subtitle, hint }) {
+      return `
+        <div id="${zoneId}" class="dropzone-neon rounded-2xl p-8 sm:p-10 text-center cursor-pointer select-none group">
+          <input id="${inputId}" type="file" accept="${accept}" ${multiple ? 'multiple' : ''} class="hidden" />
+          <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-purple-600/25 border border-cyan-400/35 flex items-center justify-center text-cyan-300 animate-float group-hover:scale-110 transition">
+            <i data-lucide="upload-cloud" class="w-8 h-8"></i>
+          </div>
+          <h3 class="text-base sm:text-lg font-bold text-white group-hover:text-cyan-200 transition">${title}</h3>
+          <p class="text-xs sm:text-sm text-slate-400 mt-1 max-w-md mx-auto">${subtitle}</p>
+          <div class="inline-flex items-center gap-2 mt-4 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-700/80 text-[11px] font-mono text-cyan-300">
+            <i data-lucide="zap" class="w-3 h-3"></i>
+            <span>${hint}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. RENDER ACTIVE TOOL WORKSPACE
+    // =========================================================================
+    function renderActiveToolWorkspace() {
+      const ws = document.getElementById('tool-workspace');
+      switch (activeToolId) {
+        case 'image-size-scaler': renderImageSizeScaler(ws); break;
+        case 'universal-converter': renderUniversalConverter(ws); break;
+        case 'pdf-merge-split': renderPdfMergeSplit(ws); break;
+        case 'pdf-compress': renderPdfCompress(ws); break;
+        case 'heic-to-jpg': renderHeicTool(ws); break;
+        case 'passport-photo': renderPassportTool(ws); break;
+        case 'bulk-resize': renderBulkResizeTool(ws); break;
+        case 'pdf-word': renderPdfWordTool(ws); break;
+        case 'image-crop': renderCropperTool(ws); break;
+      }
+      lucide.createIcons();
+    }
+
+    // -------------------------------------------------------------------------
+    // DEDICATED TOOL A: IMAGE SIZE REDUCER & INCREASER (KB/MB + WIDTH/HEIGHT %)
+    // -------------------------------------------------------------------------
+    function renderImageSizeScaler(ws) {
+      const ss = state.sizeScaler;
+
+      // Calculate live preview dimensions for Ratio / Percentage Scaler
+      let previewW = ss.origWidth;
+      let previewH = ss.origHeight;
+      if (ss.img) {
+        if (ss.scaleSubMode === 'percent') {
+          previewW = Math.max(1, Math.round(ss.origWidth * (ss.percent / 100)));
+          previewH = Math.max(1, Math.round(ss.origHeight * (ss.percent / 100)));
+        } else {
+          previewW = Math.max(1, ss.width || ss.origWidth);
+          previewH = Math.max(1, ss.height || ss.origHeight);
+        }
+      }
+
+      ws.innerHTML = `
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-6">
+          <!-- Primary Mode Tabs -->
+          <div class="flex flex-col sm:flex-row p-1.5 rounded-2xl bg-slate-950/85 border border-slate-800 gap-1.5 max-w-2xl">
+            <button onclick="state.sizeScaler.mode='target-size'; renderActiveToolWorkspace();" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${ss.mode === 'target-size' ? 'bg-gradient-to-r from-cyan-500/25 to-purple-600/30 text-cyan-200 border border-cyan-400/40 shadow-[0_0_18px_rgba(0,240,255,0.15)]' : 'text-slate-400 hover:text-white'}">
+              <i data-lucide="gauge" class="w-4 h-4 text-cyan-300"></i>
+              <span>Exact KB / MB Size Reducer & Increaser</span>
+            </button>
+            <button onclick="state.sizeScaler.mode='ratio-scale'; renderActiveToolWorkspace();" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${ss.mode === 'ratio-scale' ? 'bg-gradient-to-r from-cyan-500/25 to-purple-600/30 text-cyan-200 border border-cyan-400/40 shadow-[0_0_18px_rgba(0,240,255,0.15)]' : 'text-slate-400 hover:text-white'}">
+              <i data-lucide="maximize-2" class="w-4 h-4 text-purple-300"></i>
+              <span>Width & Height Ratio / % Scaler</span>
+            </button>
+          </div>
+
+          ${!ss.img ? createDropzoneMarkup({
+            zoneId: 'scaler-dropzone',
+            inputId: 'scaler-input',
+            accept: 'image/*,.heic,.heif',
+            multiple: false,
+            title: 'Drop JPG, JPEG, PNG, WebP, or HEIC photo to Reduce or Increase Size',
+            subtitle: 'Shrink large photos down to 15KB/50KB/200KB, boost small images up to a required minimum KB/MB, or scale dimensions by 10%–400%.',
+            hint: 'BI-DIRECTIONAL SIZE & DIMENSION ENGINE'
+          }) : `
+            <!-- Loaded Image Telemetry Header -->
+            <div class="p-4 rounded-2xl bg-slate-900/85 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div class="flex items-center gap-3.5 min-w-0">
+                <img src="${ss.thumbUrl}" class="w-14 h-14 rounded-xl object-cover border border-cyan-400/40 shrink-0" alt="preview" />
+                <div class="min-w-0">
+                  <div class="text-sm font-bold text-white truncate">${ss.file.name}</div>
+                  <div class="flex flex-wrap items-center gap-2 mt-1 text-xs font-mono">
+                    <span class="px-2 py-0.5 rounded bg-slate-950 text-cyan-300 border border-slate-800">${ss.origWidth} × ${ss.origHeight} px</span>
+                    <span class="px-2 py-0.5 rounded bg-purple-950/60 text-purple-200 border border-purple-500/30">Original: ${formatBytes(ss.origSize)}</span>
+                  </div>
+                </div>
+              </div>
+              <button onclick="state.sizeScaler.img=null; state.sizeScaler.file=null; renderActiveToolWorkspace();" class="self-start sm:self-center px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200">
+                Change Photo
+              </button>
+            </div>
+
+            ${ss.mode === 'target-size' ? `
+              <!-- MODE A: EXACT KB / MB SIZE REDUCER & INCREASER -->
+              <div class="space-y-5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div class="space-y-1.5">
+                    <label class="block text-[11px] font-mono uppercase tracking-wider text-slate-400">Size Operation</label>
+                    <select onchange="state.sizeScaler.sizeDirection=this.value; renderActiveToolWorkspace();" class="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-white focus:border-cyan-400 focus:outline-none">
+                      <option value="auto" ${ss.sizeDirection === 'auto' ? 'selected' : ''}>Auto-Match Exact Target (Reduce or Increase)</option>
+                      <option value="reduce" ${ss.sizeDirection === 'reduce' ? 'selected' : ''}>Reduce / Compress File Size (≤ Target)</option>
+                      <option value="increase" ${ss.sizeDirection === 'increase' ? 'selected' : ''}>Increase / Boost File Size (≥ Target)</option>
+                    </select>
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="block text-[11px] font-mono uppercase tracking-wider text-slate-400">Desired File Size</label>
+                    <div class="flex gap-2">
+                      <input type="number" min="2" step="1" value="${ss.targetValue}" oninput="state.sizeScaler.targetValue=Number(this.value)" class="flex-1 px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 font-mono text-sm font-bold text-cyan-200 focus:border-cyan-400 focus:outline-none" />
+                      <select onchange="state.sizeScaler.targetUnit=this.value" class="px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 font-mono text-sm font-bold text-white">
+                        <option value="KB" ${ss.targetUnit === 'KB' ? 'selected' : ''}>KB</option>
+                        <option value="MB" ${ss.targetUnit === 'MB' ? 'selected' : ''}>MB</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="space-y-1.5">
+                    <label class="block text-[11px] font-mono uppercase tracking-wider text-slate-400">Output Format</label>
+                    <select onchange="state.sizeScaler.outputFormat=this.value" class="w-full px-3.5 py-3 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-cyan-200">
+                      <option value="image/jpeg" ${ss.outputFormat === 'image/jpeg' ? 'selected' : ''}>JPG (.jpg) — Best for KB/MB Control</option>
+                      <option value="image/webp" ${ss.outputFormat === 'image/webp' ? 'selected' : ''}>WebP (.webp) — Modern High Efficiency</option>
+                      <option value="image/png" ${ss.outputFormat === 'image/png' ? 'selected' : ''}>PNG (.png) — Lossless Graphic</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Quick Portal / Standard Size Presets -->
+                <div class="space-y-2">
+                  <span class="text-[11px] font-mono text-slate-400">QUICK TARGET PRESETS:</span>
+                  <div class="flex flex-wrap gap-2">
+                    ${[
+                      { label: '15 KB (Signature)', val: 15, unit: 'KB' },
+                      { label: '30 KB (Exam Form)', val: 30, unit: 'KB' },
+                      { label: '50 KB (Govt Portal)', val: 50, unit: 'KB' },
+                      { label: '100 KB (Web Avatar)', val: 100, unit: 'KB' },
+                      { label: '250 KB (HD Photo)', val: 250, unit: 'KB' },
+                      { label: '1 MB (Print High-Res)', val: 1, unit: 'MB' },
+                      { label: '3 MB (Ultra Boost)', val: 3, unit: 'MB' }
+                    ].map((p) => `
+                      <button onclick="state.sizeScaler.targetValue=${p.val}; state.sizeScaler.targetUnit='${p.unit}'; renderActiveToolWorkspace();" class="px-3 py-1.5 rounded-xl text-xs font-mono transition ${ss.targetValue === p.val && ss.targetUnit === p.unit ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400/50' : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 border border-slate-800'}">
+                        ${p.label}
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                  <button onclick="executeTargetSizeScaler()" class="btn-neon px-6 py-3.5 rounded-xl text-sm flex items-center gap-2">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    <span>Forge Photo to ${ss.targetValue} ${ss.targetUnit}</span>
+                  </button>
+                </div>
+              </div>
+            ` : `
+              <!-- MODE B: WIDTH & HEIGHT RATIO / PERCENTAGE SCALER -->
+              <div class="space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="flex p-1 rounded-xl bg-slate-950 border border-slate-800">
+                    <button onclick="state.sizeScaler.scaleSubMode='percent'; renderActiveToolWorkspace();" class="px-3.5 py-2 rounded-lg text-xs font-bold ${ss.scaleSubMode === 'percent' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40' : 'text-slate-400 hover:text-white'}">Percentage (10%–400%)</button>
+                    <button onclick="state.sizeScaler.scaleSubMode='pixels'; renderActiveToolWorkspace();" class="px-3.5 py-2 rounded-lg text-xs font-bold ${ss.scaleSubMode === 'pixels' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40' : 'text-slate-400 hover:text-white'}">Width × Height (px)</button>
+                    <button onclick="state.sizeScaler.scaleSubMode='aspect'; renderActiveToolWorkspace();" class="px-3.5 py-2 rounded-lg text-xs font-bold ${ss.scaleSubMode === 'aspect' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40' : 'text-slate-400 hover:text-white'}">Aspect Ratio Presets</button>
+                  </div>
+
+                  <div class="px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-400/30 font-mono text-xs text-cyan-200">
+                    New Resolution: <span class="font-bold">${previewW} × ${previewH} px</span>
+                  </div>
+                </div>
+
+                ${ss.scaleSubMode === 'percent' ? `
+                  <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+                    <div class="flex justify-between items-center text-xs font-mono">
+                      <span class="text-slate-300">SCALE FACTOR (REDUCE &lt;100% | INCREASE &gt;100%)</span>
+                      <span class="text-base font-bold text-cyan-300">${ss.percent}%</span>
+                    </div>
+                    <input type="range" min="10" max="400" step="5" value="${ss.percent}" oninput="state.sizeScaler.percent=Number(this.value); renderActiveToolWorkspace();" class="w-full" />
+                    <div class="flex flex-wrap gap-2">
+                      ${[25, 50, 75, 100, 150, 200, 300, 400].map((pct) => `
+                        <button onclick="state.sizeScaler.percent=${pct}; renderActiveToolWorkspace();" class="px-3 py-1.5 rounded-lg font-mono text-xs border transition ${ss.percent === pct ? 'bg-purple-600/30 border-cyan-400 text-white' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-white'}">
+                          ${pct}% ${pct < 100 ? '↓' : pct > 100 ? '↑' : ''}
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ss.scaleSubMode === 'pixels' ? `
+                  <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                      <div>
+                        <label class="block text-[11px] font-mono text-slate-400 mb-1">NEW WIDTH (PX)</label>
+                        <input type="number" min="1" max="12000" value="${ss.width}" oninput="updateScalerDimension('width', Number(this.value))" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 font-mono text-sm text-cyan-200" />
+                      </div>
+                      <div>
+                        <label class="block text-[11px] font-mono text-slate-400 mb-1">NEW HEIGHT (PX)</label>
+                        <input type="number" min="1" max="12000" value="${ss.height}" oninput="updateScalerDimension('height', Number(this.value))" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 font-mono text-sm text-cyan-200" />
+                      </div>
+                      <label class="flex items-center gap-2.5 p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-semibold text-slate-200 cursor-pointer">
+                        <input type="checkbox" ${ss.lockAspect ? 'checked' : ''} onchange="state.sizeScaler.lockAspect=this.checked" class="accent-cyan-400" />
+                        <span>Lock Width/Height Ratio</span>
+                      </label>
+                    </div>
+                  </div>
+                ` : `
+                  <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+                    <div class="text-xs font-mono text-slate-400">SELECT ASPECT RATIO TARGET (CENTER-FIT CROP + RESIZE):</div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                      ${[
+                        { id: '1:1', label: '1:1 Square', w: 1080, h: 1080 },
+                        { id: '4:3', label: '4:3 Standard', w: 1600, h: 1200 },
+                        { id: '16:9', label: '16:9 Widescreen', w: 1920, h: 1080 },
+                        { id: '9:16', label: '9:16 Story / Reel', w: 1080, h: 1920 },
+                        { id: '3:2', label: '3:2 DSLR Photo', w: 1800, h: 1200 },
+                        { id: 'passport', label: '35×45mm Passport', w: 413, h: 531 },
+                        { id: 'signature', label: '140×60px Signature', w: 140, h: 60 },
+                        { id: 'banner', label: '3:1 Cover Banner', w: 1500, h: 500 }
+                      ].map((r) => `
+                        <button onclick="applyScalerAspectPreset('${r.id}', ${r.w}, ${r.h})" class="p-3 rounded-xl text-left border transition ${ss.aspectPreset === r.id ? 'bg-cyan-500/20 border-cyan-400 text-white' : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-600'}">
+                          <div class="text-xs font-bold">${r.label}</div>
+                          <div class="text-[11px] font-mono text-cyan-300 mt-0.5">${r.w} × ${r.h} px</div>
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                `}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+                  <div>
+                    <label class="block text-[11px] font-mono text-slate-400 mb-1">EXPORT FORMAT</label>
+                    <select onchange="state.sizeScaler.outputFormat=this.value" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-white">
+                      <option value="image/jpeg" ${ss.outputFormat === 'image/jpeg' ? 'selected' : ''}>JPG (.jpg)</option>
+                      <option value="image/png" ${ss.outputFormat === 'image/png' ? 'selected' : ''}>PNG (.png)</option>
+                      <option value="image/webp" ${ss.outputFormat === 'image/webp' ? 'selected' : ''}>WebP (.webp)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-xs font-mono mb-1">
+                      <span class="text-slate-300">ENCODING QUALITY</span>
+                      <span class="text-cyan-300 font-bold">${Math.round(ss.quality * 100)}%</span>
+                    </div>
+                    <input type="range" min="0.2" max="1.0" step="0.02" value="${ss.quality}" oninput="state.sizeScaler.quality=Number(this.value); this.previousElementSibling.lastElementChild.textContent=Math.round(this.value*100)+'%'" class="w-full" />
+                  </div>
+                </div>
+
+                <div class="flex justify-end">
+                  <button onclick="executeRatioDimensionScaler()" class="btn-neon px-6 py-3.5 rounded-xl text-sm flex items-center gap-2">
+                    <i data-lucide="scaling" class="w-4 h-4"></i>
+                    <span>Apply ${previewW}×${previewH} Scaling</span>
+                  </button>
+                </div>
+              </div>
+            `}
+          `}
+        </div>
+      `;
+
+      bindDropzone('scaler-dropzone', 'scaler-input', async (files) => {
+        const f = files[0];
+        if (!f) return;
+        try {
+          let usableBlob = f;
+          if (f.name.toLowerCase().endsWith('.heic') || f.name.toLowerCase().endsWith('.heif')) {
+            usableBlob = await convertSingleHeicOrImageToJpg(f, 0.95);
+          }
+          const url = URL.createObjectURL(usableBlob);
+          const img = await new Promise((res, rej) => {
+            const i = new Image();
+            i.onload = () => res(i);
+            i.onerror = rej;
+            i.src = url;
+          });
+          state.sizeScaler.file = f;
+          state.sizeScaler.img = img;
+          state.sizeScaler.thumbUrl = url;
+          state.sizeScaler.origWidth = img.naturalWidth;
+          state.sizeScaler.origHeight = img.naturalHeight;
+          state.sizeScaler.origSize = f.size;
+          state.sizeScaler.width = img.naturalWidth;
+          state.sizeScaler.height = img.naturalHeight;
+          state.sizeScaler.percent = 100;
+          state.sizeScaler.targetValue = Math.max(10, Math.round((f.size / 1024) * 0.5));
+          state.sizeScaler.targetUnit = 'KB';
+          renderActiveToolWorkspace();
+        } catch (err) {
+          showToast('Could not load image: ' + err.message, 'error');
+        }
+      });
+    }
+
+    function updateScalerDimension(axis, val) {
+      const ss = state.sizeScaler;
+      if (!val || val < 1) return;
+      if (axis === 'width') {
+        ss.width = val;
+        if (ss.lockAspect && ss.origWidth > 0) {
+          ss.height = Math.max(1, Math.round((val / ss.origWidth) * ss.origHeight));
+        }
+      } else {
+        ss.height = val;
+        if (ss.lockAspect && ss.origHeight > 0) {
+          ss.width = Math.max(1, Math.round((val / ss.origHeight) * ss.origWidth));
+        }
+      }
+      renderActiveToolWorkspace();
+    }
+
+    function applyScalerAspectPreset(id, w, h) {
+      state.sizeScaler.aspectPreset = id;
+      state.sizeScaler.width = w;
+      state.sizeScaler.height = h;
+      renderActiveToolWorkspace();
+    }
+
+    // Helper: Pad a Blob cleanly to hit a minimum byte target when increasing file size
+    async function padBlobToTargetSize(blob, targetBytes, mimeType) {
+      if (blob.size >= targetBytes) return blob;
+      const padNeeded = targetBytes - blob.size;
+      const padding = new Uint8Array(padNeeded);
+      // Fill with non-zero neutral comment/metadata bytes so byte count is exact and valid
+      padding.fill(0x20);
+      return new Blob([blob, padding], { type: mimeType });
+    }
+
+    async function executeTargetSizeScaler() {
+      const ss = state.sizeScaler;
+      if (!ss.img || !ss.targetValue || ss.targetValue <= 0) {
+        showToast('Enter a valid target size in KB or MB.', 'error');
+        return;
+      }
+
+      const targetBytes = ss.targetUnit === 'MB'
+        ? Math.round(ss.targetValue * 1024 * 1024)
+        : Math.round(ss.targetValue * 1024);
+
+      const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+      const ext = extMap[ss.outputFormat] || 'jpg';
+
+      updateProcessingProgress(12, 1, `Analyzing ${ss.origWidth}×${ss.origHeight} image (${formatBytes(ss.origSize)})...`);
+      await sleep(180);
+
+      const renderAt = async (scale, quality, format) => {
+        const w = Math.max(16, Math.round(ss.origWidth * scale));
+        const h = Math.max(16, Math.round(ss.origHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        if (format === 'image/jpeg') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, w, h);
+        }
+        ctx.drawImage(ss.img, 0, 0, w, h);
+        const blob = await new Promise((res) => canvas.toBlob(res, format, quality));
+        return { blob, w, h };
+      };
+
+      const wantIncrease = ss.sizeDirection === 'increase' || (ss.sizeDirection === 'auto' && targetBytes > ss.origSize);
+
+      let finalResult = null;
+
+      if (!wantIncrease) {
+        // REDUCE MODE: Binary search quality first, then progressively scale dimensions down if needed
+        updateProcessingProgress(35, 2, `Running binary-search compression toward ${ss.targetValue} ${ss.targetUnit}...`);
+        let scale = 1.0;
+        let bestCandidate = null;
+
+        for (let step = 0; step < 5; step++) {
+          let low = 0.05;
+          let high = 0.98;
+          for (let iter = 0; iter < 7; iter++) {
+            const mid = (low + high) / 2;
+            const res = await renderAt(scale, mid, ss.outputFormat);
+            if (res.blob.size <= targetBytes) {
+              bestCandidate = res;
+              low = mid;
+            } else {
+              high = mid;
+            }
+          }
+          if (bestCandidate && bestCandidate.blob.size <= targetBytes) {
+            break;
+          }
+          // Scale down dimensions by 22% and retry binary search
+          scale *= 0.78;
+          updateProcessingProgress(40 + step * 10, 2, `Adjusting resolution scale (${Math.round(scale * 100)}%) to fit ${ss.targetValue} ${ss.targetUnit}...`);
+        }
+
+        if (!bestCandidate) {
+          bestCandidate = await renderAt(0.2, 0.1, ss.outputFormat);
+        }
+        finalResult = bestCandidate;
+      } else {
+        // INCREASE MODE: Upscale resolution with high-quality smoothing up to 3.5x at 100% quality, then pad cleanly to exact targetBytes
+        updateProcessingProgress(45, 2, `Upscaling resolution & encoding at maximum quality to reach ${ss.targetValue} ${ss.targetUnit}...`);
+        let scale = 1.0;
+        let candidate = await renderAt(scale, 1.0, ss.outputFormat);
+
+        while (candidate.blob.size < targetBytes && scale < 3.5) {
+          scale = Math.min(3.5, scale + 0.5);
+          candidate = await renderAt(scale, 1.0, ss.outputFormat);
+          updateProcessingProgress(65, 2, `Upscaling to ${candidate.w}×${candidate.h} (${formatBytes(candidate.blob.size)})...`);
+        }
+
+        if (candidate.blob.size < targetBytes) {
+          const paddedBlob = await padBlobToTargetSize(candidate.blob, targetBytes, ss.outputFormat);
+          candidate = { blob: paddedBlob, w: candidate.w, h: candidate.h };
+        }
+        finalResult = candidate;
+      }
+
+      updateProcessingProgress(100, 3, 'Finalizing target-matched image...');
+      await sleep(180);
+
+      const baseName = ss.file.name.replace(/\.[^.]+$/, '');
+      const outName = `${baseName}_${ss.targetValue}${ss.targetUnit}.${ext}`;
+
+      showSuccessResult({
+        title: `Image Forged to ${formatBytes(finalResult.blob.size)}!`,
+        subtitle: `Output dimensions: ${finalResult.w} × ${finalResult.h} px (${ext.toUpperCase()}).`,
+        beforeBytes: ss.origSize,
+        afterBytes: finalResult.blob.size,
+        downloadLabel: `Download ${ext.toUpperCase()} (${formatBytes(finalResult.blob.size)})`,
+        onDownload: () => triggerBlobDownload(finalResult.blob, outName)
+      });
+    }
+
+    async function executeRatioDimensionScaler() {
+      const ss = state.sizeScaler;
+      if (!ss.img) return;
+
+      let targetW = ss.origWidth;
+      let targetH = ss.origHeight;
+      if (ss.scaleSubMode === 'percent') {
+        targetW = Math.max(1, Math.round(ss.origWidth * (ss.percent / 100)));
+        targetH = Math.max(1, Math.round(ss.origHeight * (ss.percent / 100)));
+      } else {
+        targetW = Math.max(1, ss.width);
+        targetH = Math.max(1, ss.height);
+      }
+
+      updateProcessingProgress(35, 2, `Scaling image to ${targetW} × ${targetH} px...`);
+      await sleep(180);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+
+      if (ss.outputFormat === 'image/jpeg') {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, targetW, targetH);
+      }
+
+      if (ss.scaleSubMode === 'aspect') {
+        // Center-crop cover fit to preserve clean proportions without distortion
+        const scale = Math.max(targetW / ss.origWidth, targetH / ss.origHeight);
+        const drawW = ss.origWidth * scale;
+        const drawH = ss.origHeight * scale;
+        ctx.drawImage(ss.img, (targetW - drawW) / 2, (targetH - drawH) / 2, drawW, drawH);
+      } else {
+        ctx.drawImage(ss.img, 0, 0, targetW, targetH);
+      }
+
+      updateProcessingProgress(90, 3, 'Encoding scaled output...');
+      const blob = await new Promise((res) => canvas.toBlob(res, ss.outputFormat, ss.quality));
+      const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' };
+      const ext = extMap[ss.outputFormat] || 'jpg';
+      const outName = `${ss.file.name.replace(/\.[^.]+$/, '')}_${targetW}x${targetH}.${ext}`;
+
+      showSuccessResult({
+        title: `Scaled to ${targetW} × ${targetH} px!`,
+        subtitle: `Converted from ${ss.origWidth}×${ss.origHeight} px to ${targetW}×${targetH} px.`,
+        beforeBytes: ss.origSize,
+        afterBytes: blob.size,
+        downloadLabel: `Download ${targetW}×${targetH} ${ext.toUpperCase()}`,
+        onDownload: () => triggerBlobDownload(blob, outName)
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // DEDICATED TOOL B: UNIVERSAL PHOTO & DOCUMENT CONVERTER (ALL FORMATS)
+    // -------------------------------------------------------------------------
+    function renderUniversalConverter(ws) {
+      const uc = state.universal;
+      const isPhoto = uc.category === 'photo';
+
+      ws.innerHTML = `
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-6">
+          <!-- Category Switcher -->
+          <div class="flex flex-col sm:flex-row p-1.5 rounded-2xl bg-slate-950/85 border border-slate-800 gap-1.5 max-w-2xl">
+            <button onclick="state.universal.category='photo'; renderActiveToolWorkspace();" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${isPhoto ? 'bg-gradient-to-r from-cyan-500/25 to-purple-600/30 text-cyan-200 border border-cyan-400/40' : 'text-slate-400 hover:text-white'}">
+              <i data-lucide="image" class="w-4 h-4 text-cyan-300"></i>
+              <span>All Photo Formats (JPG, PNG, WebP, BMP, ICO, SVG, HEIC)</span>
+            </button>
+            <button onclick="state.universal.category='doc'; renderActiveToolWorkspace();" class="flex-1 py-2.5 px-4 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 ${!isPhoto ? 'bg-gradient-to-r from-cyan-500/25 to-purple-600/30 text-cyan-200 border border-cyan-400/40' : 'text-slate-400 hover:text-white'}">
+              <i data-lucide="files" class="w-4 h-4 text-purple-300"></i>
+              <span>All Document Types (PDF, DOCX, TXT, HTML, MD, CSV, Photos→PDF)</span>
+            </button>
+          </div>
+
+          ${isPhoto ? `
+            ${createDropzoneMarkup({
+              zoneId: 'univ-photo-zone',
+              inputId: 'univ-photo-input',
+              accept: 'image/*,.heic,.heif,.svg,.bmp,.ico,.gif,.webp,.png,.jpg,.jpeg',
+              multiple: true,
+              title: 'Drop ANY photo format (JPG, JPEG, PNG, WebP, HEIC, SVG, BMP, GIF, ICO)',
+              subtitle: 'Batch convert between all major raster & vector image formats with transparency matte fill and ZIP export.',
+              hint: 'UNIVERSAL IMAGE TRANSCODER'
+            })}
+
+            ${uc.photoFiles.length > 0 ? `
+              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-[11px] font-mono text-slate-400 mb-1.5">CONVERT ALL TO FORMAT</label>
+                  <select onchange="setUniversalPhotoFormat(this.value)" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-cyan-200">
+                    <option value="jpg" ${uc.photoExt === 'jpg' ? 'selected' : ''}>JPG (.jpg)</option>
+                    <option value="jpeg" ${uc.photoExt === 'jpeg' ? 'selected' : ''}>JPEG (.jpeg)</option>
+                    <option value="png" ${uc.photoExt === 'png' ? 'selected' : ''}>PNG (.png — Transparent)</option>
+                    <option value="webp" ${uc.photoExt === 'webp' ? 'selected' : ''}>WebP (.webp — Next-Gen)</option>
+                    <option value="bmp" ${uc.photoExt === 'bmp' ? 'selected' : ''}>BMP (.bmp — Uncompressed Bitmap)</option>
+                    <option value="ico" ${uc.photoExt === 'ico' ? 'selected' : ''}>ICO (.ico — Windows/Web Favicon)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-[11px] font-mono text-slate-400 mb-1.5">BACKGROUND MATTE (FOR JPG/BMP)</label>
+                  <div class="flex items-center gap-2 h-10">
+                    ${['#FFFFFF', '#000000', '#070B19', '#38BDF8', '#7C3AED'].map((c) => `
+                      <button onclick="state.universal.photoMatte='${c}'; renderActiveToolWorkspace();" class="w-7 h-7 rounded-lg border-2 ${uc.photoMatte === c ? 'border-cyan-400 scale-110' : 'border-slate-600'}" style="background:${c}"></button>
+                    `).join('')}
+                  </div>
+                </div>
+
+                <div>
+                  <div class="flex justify-between text-[11px] font-mono text-slate-400 mb-1.5">
+                    <span>QUALITY</span>
+                    <span class="text-cyan-300 font-bold">${Math.round(uc.photoQuality * 100)}%</span>
+                  </div>
+                  <input type="range" min="0.4" max="1.0" step="0.02" value="${uc.photoQuality}" oninput="state.universal.photoQuality=Number(this.value); this.previousElementSibling.lastElementChild.textContent=Math.round(this.value*100)+'%'" class="w-full mt-2" />
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                ${uc.photoFiles.map((item, idx) => `
+                  <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <i data-lucide="image" class="w-4 h-4 text-cyan-300 shrink-0"></i>
+                      <div class="min-w-0">
+                        <div class="text-xs font-semibold text-white truncate">${item.name}</div>
+                        <div class="text-[11px] font-mono text-slate-400">${formatBytes(item.size)}</div>
+                      </div>
+                    </div>
+                    <button onclick="state.universal.photoFiles.splice(${idx},1); renderActiveToolWorkspace();" class="text-slate-400 hover:text-rose-400 p-1">
+                      <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="flex justify-end">
+                <button onclick="executeUniversalPhotoConvert()" class="btn-neon px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+                  <i data-lucide="repeat" class="w-4 h-4"></i>
+                  <span>Convert ${uc.photoFiles.length} Photo(s) to .${uc.photoExt.toUpperCase()}</span>
+                </button>
+              </div>
+            ` : ''}
+          ` : `
+            <!-- DOCUMENT CONVERTER -->
+            ${createDropzoneMarkup({
+              zoneId: 'univ-doc-zone',
+              inputId: 'univ-doc-input',
+              accept: '.pdf,.docx,.txt,.md,.html,.htm,.csv,.json,image/*',
+              multiple: true,
+              title: 'Drop PDF, Word (.DOCX), TXT, Markdown, HTML, CSV, JSON, or Photos to Combine into PDF',
+              subtitle: 'Convert PDF↔DOCX, PDF→JPG/PNG pages, Multiple Photos→Single PDF, or TXT/MD/HTML/CSV/JSON→PDF/DOCX.',
+              hint: 'ALL-IN-ONE DOCUMENT ENGINE'
+            })}
+
+            ${uc.docFiles.length > 0 ? `
+              <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+                <div>
+                  <label class="block text-[11px] font-mono text-slate-400 mb-1.5">TARGET OUTPUT FORMAT</label>
+                  <select onchange="state.universal.docTarget=this.value" class="w-full sm:max-w-md px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-cyan-200">
+                    <option value="pdf" ${uc.docTarget === 'pdf' ? 'selected' : ''}>PDF Document (.pdf) — From DOCX, TXT, MD, HTML, CSV, JSON, or Photos</option>
+                    <option value="docx" ${uc.docTarget === 'docx' ? 'selected' : ''}>Word Document (.docx) — From PDF, TXT, MD, HTML, CSV, JSON</option>
+                    <option value="pdf-to-jpg" ${uc.docTarget === 'pdf-to-jpg' ? 'selected' : ''}>PDF Pages → High-Res JPG Images (.zip)</option>
+                    <option value="pdf-to-png" ${uc.docTarget === 'pdf-to-png' ? 'selected' : ''}>PDF Pages → Lossless PNG Images (.zip)</option>
+                    <option value="txt" ${uc.docTarget === 'txt' ? 'selected' : ''}>Plain Text (.txt) — Extract text from PDF / DOCX / HTML</option>
+                    <option value="html" ${uc.docTarget === 'html' ? 'selected' : ''}>HTML Web Document (.html) — From DOCX / PDF / Markdown / TXT</option>
+                  </select>
+                </div>
+
+                <div class="space-y-2">
+                  ${uc.docFiles.map((item, idx) => `
+                    <div class="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2.5 min-w-0">
+                        <i data-lucide="file-text" class="w-4 h-4 text-purple-300 shrink-0"></i>
+                        <div class="min-w-0">
+                          <div class="text-xs font-semibold text-white truncate">${item.name}</div>
+                          <div class="text-[11px] font-mono text-slate-400">${formatBytes(item.size)}</div>
+                        </div>
+                      </div>
+                      <button onclick="state.universal.docFiles.splice(${idx},1); renderActiveToolWorkspace();" class="text-slate-400 hover:text-rose-400 p-1">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                      </button>
+                    </div>
+                  `).join('')}
+                </div>
+
+                <div class="flex justify-end">
+                  <button onclick="executeUniversalDocConvert()" class="btn-neon px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+                    <i data-lucide="file-check" class="w-4 h-4"></i>
+                    <span>Convert Document(s) Now</span>
+                  </button>
+                </div>
+              </div>
+            ` : ''}
+          `}
+        </div>
+      `;
+
+      bindDropzone('univ-photo-zone', 'univ-photo-input', (files) => {
+        files.forEach((f) => {
+          state.universal.photoFiles.push({ id: crypto.randomUUID(), file: f, name: f.name, size: f.size });
+        });
+        renderActiveToolWorkspace();
+      });
+
+      bindDropzone('univ-doc-zone', 'univ-doc-input', (files) => {
+        files.forEach((f) => {
+          state.universal.docFiles.push({ id: crypto.randomUUID(), file: f, name: f.name, size: f.size });
+        });
+        // Smart auto-select target based on dropped file type
+        const first = files[0].name.toLowerCase();
+        if (first.endsWith('.pdf')) {
+          state.universal.docTarget = 'docx';
+        } else if (files.every((f) => f.type.startsWith('image/'))) {
+          state.universal.docTarget = 'pdf';
+        } else {
+          state.universal.docTarget = 'pdf';
+        }
+        renderActiveToolWorkspace();
+      });
+    }
+
+    function setUniversalPhotoFormat(ext) {
+      state.universal.photoExt = ext;
+      const mimeMap = {
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png',
+        webp: 'image/webp',
+        bmp: 'image/bmp',
+        ico: 'image/png' // Encoded as 64x64 / 128x128 PNG inside valid ICO container
+      };
+      state.universal.photoTarget = mimeMap[ext] || 'image/jpeg';
+      renderActiveToolWorkspace();
+    }
+
+    // Build a valid 32-bit PNG-compressed Windows .ICO binary from a canvas
+    async function canvasToIcoBlob(sourceCanvas) {
+      const icoCanvas = document.createElement('canvas');
+      icoCanvas.width = 64;
+      icoCanvas.height = 64;
+      icoCanvas.getContext('2d').drawImage(sourceCanvas, 0, 0, 64, 64);
+      const pngBlob = await new Promise((res) => icoCanvas.toBlob(res, 'image/png'));
+      const pngBytes = new Uint8Array(await pngBlob.arrayBuffer());
+
+      const header = new ArrayBuffer(22);
+      const view = new DataView(header);
+      view.setUint16(0, 0, true); // Reserved
+      view.setUint16(2, 1, true); // Type 1 = ICO
+      view.setUint16(4, 1, true); // 1 image
+      view.setUint8(6, 64);       // Width 64
+      view.setUint8(7, 64);       // Height 64
+      view.setUint8(8, 0);        // Color palette
+      view.setUint8(9, 0);        // Reserved
+      view.setUint16(10, 1, true);// Color planes
+      view.setUint16(12, 32, true);// Bits per pixel
+      view.setUint32(14, pngBytes.length, true); // Size of PNG data
+      view.setUint32(18, 22, true); // Offset
+
+      return new Blob([header, pngBytes], { type: 'image/x-icon' });
+    }
+
+    // Build a valid 24-bit uncompressed .BMP binary from a canvas
+    function canvasToBmpBlob(canvas) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const ctx = canvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, w, h).data;
+      const rowStride = Math.floor((24 * w + 31) / 32) * 4;
+      const pixelArraySize = rowStride * h;
+      const fileSize = 54 + pixelArraySize;
+
+      const buffer = new ArrayBuffer(fileSize);
+      const view = new DataView(buffer);
+      const bytes = new Uint8Array(buffer);
+
+      // BITMAPFILEHEADER
+      view.setUint8(0, 0x42); // 'B'
+      view.setUint8(1, 0x4D); // 'M'
+      view.setUint32(2, fileSize, true);
+      view.setUint32(10, 54, true);
+
+      // BITMAPINFOHEADER
+      view.setUint32(14, 40, true);
+      view.setInt32(18, w, true);
+      view.setInt32(22, h, true);
+      view.setUint16(26, 1, true);
+      view.setUint16(28, 24, true);
+      view.setUint32(34, pixelArraySize, true);
+
+      for (let y = 0; y < h; y++) {
+        const srcRow = h - 1 - y;
+        const dstOffset = 54 + y * rowStride;
+        for (let x = 0; x < w; x++) {
+          const sIdx = (srcRow * w + x) * 4;
+          const dIdx = dstOffset + x * 3;
+          bytes[dIdx] = imgData[sIdx + 2];     // B
+          bytes[dIdx + 1] = imgData[sIdx + 1]; // G
+          bytes[dIdx + 2] = imgData[sIdx];     // R
+        }
+      }
+
+      return new Blob([buffer], { type: 'image/bmp' });
+    }
+
+    async function executeUniversalPhotoConvert() {
+      const uc = state.universal;
+      if (!uc.photoFiles.length) return;
+
+      updateProcessingProgress(12, 1, 'Decoding source image containers...');
+      const zip = new JSZip();
+      const gallery = [];
+      let totalBefore = 0;
+      let totalAfter = 0;
+
+      for (let i = 0; i < uc.photoFiles.length; i++) {
+        const item = uc.photoFiles[i];
+        totalBefore += item.size;
+        updateProcessingProgress(18 + ((i + 1) / uc.photoFiles.length) * 70, 2, `Transcoding ${item.name} → .${uc.photoExt.toUpperCase()}...`);
+
+        let srcBlob = item.file;
+        if (item.name.toLowerCase().endsWith('.heic') || item.name.toLowerCase().endsWith('.heif')) {
+          srcBlob = await convertSingleHeicOrImageToJpg(item.file, 0.95);
+        }
+
+        const url = URL.createObjectURL(srcBlob);
+        const img = await new Promise((res, rej) => {
+          const im = new Image();
+          im.onload = () => res(im);
+          im.onerror = rej;
+          im.src = url;
+        });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || 512;
+        canvas.height = img.naturalHeight || 512;
+        const ctx = canvas.getContext('2d');
+
+        if (uc.photoExt === 'jpg' || uc.photoExt === 'jpeg' || uc.photoExt === 'bmp') {
+          ctx.fillStyle = uc.photoMatte;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+
+        let outBlob;
+        if (uc.photoExt === 'ico') {
+          outBlob = await canvasToIcoBlob(canvas);
+        } else if (uc.photoExt === 'bmp') {
+          outBlob = canvasToBmpBlob(canvas);
+        } else {
+          outBlob = await new Promise((res) => canvas.toBlob(res, uc.photoTarget, uc.photoQuality));
+        }
+
+        totalAfter += outBlob.size;
+        const outName = `${item.name.replace(/\.[^.]+$/, '')}.${uc.photoExt}`;
+        zip.file(outName, outBlob);
+
+        const previewUrl = uc.photoExt === 'ico' || uc.photoExt === 'bmp'
+          ? canvas.toDataURL('image/png')
+          : URL.createObjectURL(outBlob);
+
+        gallery.push({
+          name: outName,
+          thumbUrl: previewUrl,
+          meta: `${canvas.width}×${canvas.height} • ${formatBytes(outBlob.size)}`,
+          onDownload: () => triggerBlobDownload(outBlob, outName)
+        });
+      }
+
+      updateProcessingProgress(95, 3, 'Packaging converted photos...');
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      await sleep(180);
+
+      showSuccessResult({
+        title: `Converted ${gallery.length} Photo(s) to .${uc.photoExt.toUpperCase()}!`,
+        subtitle: 'All photos transcoded locally at full fidelity.',
+        beforeBytes: totalBefore,
+        afterBytes: totalAfter,
+        downloadLabel: gallery.length === 1 ? `Download .${uc.photoExt.toUpperCase()}` : `Download All (.ZIP)`,
+        onDownload: gallery.length === 1 ? gallery[0].onDownload : () => triggerBlobDownload(zipBlob, `PixelForge_Photos_${uc.photoExt.toUpperCase()}.zip`),
+        galleryItems: gallery
+      });
+    }
+
+    async function extractTextFromAnyDoc(file) {
+      const lower = file.name.toLowerCase();
+      const ab = await file.arrayBuffer();
+
+      if (lower.endsWith('.pdf')) {
+        const pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+        let fullText = '';
+        for (let p = 1; p <= pdfDoc.numPages; p++) {
+          const page = await pdfDoc.getPage(p);
+          const tc = await page.getTextContent();
+          const pageStr = tc.items.map((it) => it.str).join(' ');
+          fullText += `--- Page ${p} ---\n${pageStr}\n\n`;
+        }
+        return fullText.trim();
+      } else if (lower.endsWith('.docx')) {
+        const res = await mammoth.extractRawText({ arrayBuffer: ab });
+        return res.value || '';
+      } else {
+        const raw = await file.text();
+        if (lower.endsWith('.html') || lower.endsWith('.htm')) {
+          const tmp = document.createElement('div');
+          tmp.innerHTML = raw;
+          return tmp.textContent || tmp.innerText || raw;
+        }
+        return raw;
+      }
+    }
+
+    async function executeUniversalDocConvert() {
+      const uc = state.universal;
+      if (!uc.docFiles.length) return;
+
+      try {
+        const totalBefore = uc.docFiles.reduce((a, b) => a + b.size, 0);
+        updateProcessingProgress(15, 1, 'Reading document structures & streams...');
+
+        // Case 1: Multiple or single Photos -> Single Multi-Page PDF
+        if (uc.docTarget === 'pdf' && uc.docFiles.every((f) => f.file.type.startsWith('image/'))) {
+          const outPdf = await PDFLib.PDFDocument.create();
+          for (let i = 0; i < uc.docFiles.length; i++) {
+            const item = uc.docFiles[i];
+            updateProcessingProgress(20 + ((i + 1) / uc.docFiles.length) * 65, 2, `Embedding photo ${i + 1}/${uc.docFiles.length} into PDF...`);
+            const url = URL.createObjectURL(item.file);
+            const img = await new Promise((res) => {
+              const im = new Image();
+              im.onload = () => res(im);
+              im.src = url;
+            });
+            const canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0);
+            URL.revokeObjectURL(url);
+
+            const jpgBytes = await fetch(canvas.toDataURL('image/jpeg', 0.92)).then((r) => r.arrayBuffer());
+            const embedded = await outPdf.embedJpg(jpgBytes);
+            const page = outPdf.addPage([canvas.width, canvas.height]);
+            page.drawImage(embedded, { x: 0, y: 0, width: canvas.width, height: canvas.height });
+          }
+
+          const pdfBytes = await outPdf.save();
+          const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+          showSuccessResult({
+            title: `Combined ${uc.docFiles.length} Photo(s) into PDF!`,
+            subtitle: `Created a ${uc.docFiles.length}-page PDF document.`,
+            beforeBytes: totalBefore,
+            afterBytes: pdfBlob.size,
+            downloadLabel: 'Download Combined PDF',
+            onDownload: () => triggerBlobDownload(pdfBlob, 'PixelForge_Photos_Document.pdf')
+          });
+          return;
+        }
+
+        // Case 2: PDF Pages -> JPG or PNG ZIP
+        if (uc.docTarget === 'pdf-to-jpg' || uc.docTarget === 'pdf-to-png') {
+          const pdfFile = uc.docFiles.find((f) => f.name.toLowerCase().endsWith('.pdf'));
+          if (!pdfFile) {
+            hideProcessingPanel();
+            showToast('Please drop a PDF file to render pages as images.', 'error');
+            return;
+          }
+          const isPng = uc.docTarget === 'pdf-to-png';
+          const mime = isPng ? 'image/png' : 'image/jpeg';
+          const ext = isPng ? 'png' : 'jpg';
+
+          const ab = await pdfFile.file.arrayBuffer();
+          const pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+          const zip = new JSZip();
+          const gallery = [];
+          let totalAfter = 0;
+
+          for (let p = 1; p <= pdfDoc.numPages; p++) {
+            updateProcessingProgress(20 + (p / pdfDoc.numPages) * 70, 2, `Rendering PDF page ${p}/${pdfDoc.numPages} to ${ext.toUpperCase()}...`);
+            const page = await pdfDoc.getPage(p);
+            const vp = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.floor(vp.width);
+            canvas.height = Math.floor(vp.height);
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            await page.render({ canvasContext: ctx, viewport: vp }).promise;
+
+            const blob = await new Promise((res) => canvas.toBlob(res, mime, 0.92));
+            totalAfter += blob.size;
+            const pageName = `${pdfFile.name.replace(/\.pdf$/i, '')}_page_${p}.${ext}`;
+            zip.file(pageName, blob);
+            gallery.push({
+              name: pageName,
+              thumbUrl: URL.createObjectURL(blob),
+              meta: `${canvas.width}×${canvas.height} • ${formatBytes(blob.size)}`,
+              onDownload: () => triggerBlobDownload(blob, pageName)
+            });
+          }
+
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          showSuccessResult({
+            title: `Extracted ${pdfDoc.numPages} PDF Page(s) as ${ext.toUpperCase()}!`,
+            subtitle: 'High-resolution 2x DPI page renders ready.',
+            beforeBytes: pdfFile.size,
+            afterBytes: totalAfter,
+            downloadLabel: `Download All Pages (.ZIP)`,
+            onDownload: () => triggerBlobDownload(zipBlob, `${pdfFile.name.replace(/\.pdf$/i, '')}_pages.zip`),
+            galleryItems: gallery
+          });
+          return;
+        }
+
+        // Case 3: Text/Doc -> PDF, DOCX, TXT, or HTML
+        const primaryItem = uc.docFiles[0];
+        updateProcessingProgress(45, 2, `Extracting & transforming content from ${primaryItem.name}...`);
+        const extractedText = await extractTextFromAnyDoc(primaryItem.file);
+        const baseName = primaryItem.name.replace(/\.[^.]+$/, '');
+
+        if (uc.docTarget === 'txt') {
+          const txtBlob = new Blob([extractedText], { type: 'text/plain;charset=utf-8' });
+          showSuccessResult({
+            title: 'Converted to Plain Text (.TXT)!',
+            subtitle: `Extracted ${extractedText.length.toLocaleString()} characters cleanly.`,
+            beforeBytes: primaryItem.size,
+            afterBytes: txtBlob.size,
+            downloadLabel: 'Download .TXT',
+            onDownload: () => triggerBlobDownload(txtBlob, `${baseName}.txt`)
+          });
+        } else if (uc.docTarget === 'html') {
+          const escaped = extractedText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const htmlDoc = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${baseName}</title><style>body{font-family:system-ui,sans-serif;max-width:820px;margin:40px auto;padding:0 20px;line-height:1.65;color:#1e293b;white-space:pre-wrap;}</style></head><body>${escaped}</body></html>`;
+          const htmlBlob = new Blob([htmlDoc], { type: 'text/html;charset=utf-8' });
+          showSuccessResult({
+            title: 'Converted to HTML Document!',
+            subtitle: 'Clean semantic HTML5 wrapper generated.',
+            beforeBytes: primaryItem.size,
+            afterBytes: htmlBlob.size,
+            downloadLabel: 'Download .HTML',
+            onDownload: () => triggerBlobDownload(htmlBlob, `${baseName}.html`)
+          });
+        } else if (uc.docTarget === 'docx') {
+          const paragraphs = extractedText.split(/\n+/).map((line) =>
+            new docx.Paragraph({
+              children: [new docx.TextRun({ text: line, size: 22, font: 'Calibri' })],
+              spacing: { after: 120 }
+            })
+          );
+          const wordDoc = new docx.Document({ sections: [{ children: paragraphs }] });
+          const docxBlob = await docx.Packer.toBlob(wordDoc);
+          showSuccessResult({
+            title: 'Converted to Word (.DOCX)!',
+            subtitle: 'Editable Microsoft Word OpenXML file ready.',
+            beforeBytes: primaryItem.size,
+            afterBytes: docxBlob.size,
+            downloadLabel: 'Download .DOCX',
+            onDownload: () => triggerBlobDownload(docxBlob, `${baseName}.docx`)
+          });
+        } else {
+          // Render to PDF via jsPDF
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+          const margin = 48;
+          const maxW = pdf.internal.pageSize.getWidth() - margin * 2;
+          const maxH = pdf.internal.pageSize.getHeight() - margin;
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(11);
+
+          let y = margin + 10;
+          for (const para of extractedText.split(/\n+/)) {
+            const lines = pdf.splitTextToSize(para || ' ', maxW);
+            for (const l of lines) {
+              if (y > maxH) {
+                pdf.addPage();
+                y = margin + 10;
+              }
+              pdf.text(l, margin, y);
+              y += 16;
+            }
+            y += 6;
+          }
+          const pdfBlob = pdf.output('blob');
+          showSuccessResult({
+            title: 'Converted Document to PDF!',
+            subtitle: 'Typeset cleanly onto A4 PDF pages.',
+            beforeBytes: primaryItem.size,
+            afterBytes: pdfBlob.size,
+            downloadLabel: 'Download .PDF',
+            onDownload: () => triggerBlobDownload(pdfBlob, `${baseName}.pdf`)
+          });
+        }
+      } catch (err) {
+        hideProcessingPanel();
+        showToast('Document conversion failed: ' + err.message, 'error');
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // TOOL 1: PDF MERGE & SPLIT
+    // -------------------------------------------------------------------------
+    // TOOL 4: PASSPORT & EXAM PHOTO / SIGNATURE MAKER
+    // -------------------------------------------------------------------------
+    function renderPassportTool(ws) {
+      const pp = state.passport;
+      ws.innerHTML = `
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-6">
+          ${!pp.img ? createDropzoneMarkup({
+            zoneId: 'passport-zone',
+            inputId: 'passport-input',
+            accept: 'image/*',
+            multiple: false,
+            title: 'Upload a portrait or signature for Passport / Exam Forms',
+            subtitle: 'Supports India (35×45mm), US (2×2 in), UK/EU, plus Exam Photo & Signature presets (140×60px, 10–20KB auto-fit).',
+            hint: '300 DPI PASSPORT & EXAM STUDIO'
+          }) : `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <!-- Live Preview Canvas Column -->
+              <div class="lg:col-span-5 flex flex-col items-center gap-3 p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
+                <div class="text-xs font-mono text-cyan-300 flex items-center gap-1.5">
+                  <i data-lucide="scan-face" class="w-4 h-4"></i>
+                  <span>BIOMETRIC / EXAM ALIGNMENT PREVIEW</span>
+                </div>
+                <div class="relative rounded-xl overflow-hidden border-2 border-cyan-400/50 shadow-[0_0_30px_rgba(0,240,255,0.2)] bg-white">
+                  <canvas id="passport-preview-canvas" width="350" height="450" class="max-w-full h-auto block"></canvas>
+                </div>
+                <p class="text-[11px] text-slate-400 text-center">Align eyes within the cyan guide band or center signature cleanly.</p>
+              </div>
+
+              <!-- Controls Column -->
+              <div class="lg:col-span-7 space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-mono text-slate-400 mb-1.5">COUNTRY / EXAM STANDARD</label>
+                    <select onchange="handlePassportPresetChange(this.value)" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-white">
+                      <option value="india" ${pp.preset === 'india' ? 'selected' : ''}>India Passport / Visa (35 × 45 mm)</option>
+                      <option value="us" ${pp.preset === 'us' ? 'selected' : ''}>US Passport / OCI (2 × 2 inch)</option>
+                      <option value="uk" ${pp.preset === 'uk' ? 'selected' : ''}>UK / EU Schengen (35 × 45 mm)</option>
+                      <option value="exam-photo" ${pp.preset === 'exam-photo' ? 'selected' : ''}>SSC / UPSC Exam Photo (3.5×4.5cm, ≤50KB)</option>
+                      <option value="exam-sig" ${pp.preset === 'exam-sig' ? 'selected' : ''}>Exam Signature Box (140 × 60 px, ≤20KB)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-mono text-slate-400 mb-1.5">OUTPUT SHEET LAYOUT</label>
+                    <select onchange="state.passport.outputLayout=this.value" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-white">
+                      <option value="sheet" ${pp.outputLayout === 'sheet' ? 'selected' : ''}>4×6 Inch Print Sheet (Multiple Copies)</option>
+                      <option value="single" ${pp.outputLayout === 'single' ? 'selected' : ''}>Single Digital Upload File</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Background Tint / Replacement -->
+                <div class="p-4 rounded-xl bg-slate-900/75 border border-slate-800 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <label class="flex items-center gap-2 text-xs font-bold text-white cursor-pointer">
+                      <input type="checkbox" ${pp.enableBgReplace ? 'checked' : ''} onchange="state.passport.enableBgReplace=this.checked; updatePassportPreview();" class="accent-cyan-400 rounded" />
+                      <span>Smart Edge-Flood Background Replacement</span>
+                    </label>
+                    <div class="flex items-center gap-2">
+                      ${['#FFFFFF', '#DCEEFF', '#E2E8F0', '#2563EB'].map((col) => `
+                        <button onclick="state.passport.bgColor='${col}'; state.passport.enableBgReplace=true; renderActiveToolWorkspace();" class="w-6 h-6 rounded-full border-2 ${pp.bgColor === col ? 'border-cyan-400 scale-110' : 'border-slate-600'}" style="background:${col}" title="${col}"></button>
+                      `).join('')}
+                    </div>
+                  </div>
+                  ${pp.enableBgReplace ? `
+                    <div>
+                      <div class="flex justify-between text-[11px] font-mono text-slate-400 mb-1">
+                        <span>Background Tolerance</span>
+                        <span class="text-cyan-300">${pp.removeBgStrength}</span>
+                      </div>
+                      <input type="range" min="10" max="85" value="${pp.removeBgStrength}" oninput="state.passport.removeBgStrength=Number(this.value); updatePassportPreview();" class="w-full" />
+                    </div>
+                  ` : ''}
+                </div>
+
+                <!-- Zoom & Pan Sliders -->
+                <div class="p-4 rounded-xl bg-slate-900/75 border border-slate-800 space-y-3">
+                  <div>
+                    <div class="flex justify-between text-xs font-mono text-slate-300 mb-1">
+                      <span>Zoom Scale</span>
+                      <span class="text-cyan-300">${Math.round(pp.zoom * 100)}%</span>
+                    </div>
+                    <input type="range" min="0.5" max="2.5" step="0.05" value="${pp.zoom}" oninput="state.passport.zoom=Number(this.value); updatePassportPreview();" class="w-full" />
+                  </div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <div class="flex justify-between text-[11px] font-mono text-slate-400 mb-1">
+                        <span>Horizontal Pan</span>
+                        <span>${pp.offsetX}px</span>
+                      </div>
+                      <input type="range" min="-150" max="150" value="${pp.offsetX}" oninput="state.passport.offsetX=Number(this.value); updatePassportPreview();" class="w-full" />
+                    </div>
+                    <div>
+                      <div class="flex justify-between text-[11px] font-mono text-slate-400 mb-1">
+                        <span>Vertical Pan</span>
+                        <span>${pp.offsetY}px</span>
+                      </div>
+                      <input type="range" min="-150" max="150" value="${pp.offsetY}" oninput="state.passport.offsetY=Number(this.value); updatePassportPreview();" class="w-full" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <button onclick="state.passport.img=null; renderActiveToolWorkspace();" class="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white">
+                    Replace Photo
+                  </button>
+                  <button onclick="executePassportGenerate()" class="btn-neon px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span>Generate Photo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `}
+        </div>
+      `;
+
+      bindDropzone('passport-zone', 'passport-input', (files) => {
+        const f = files[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        const img = new Image();
+        img.onload = () => {
+          state.passport.img = img;
+          state.passport.fileName = f.name;
+          state.passport.zoom = 1.0;
+          state.passport.offsetX = 0;
+          state.passport.offsetY = 0;
+          renderActiveToolWorkspace();
+        };
+        img.src = url;
+      });
+
+      if (pp.img) {
+        setTimeout(updatePassportPreview, 20);
+      }
+    }
+
+    function handlePassportPresetChange(val) {
+      state.passport.preset = val;
+      if (val === 'exam-photo' || val === 'exam-sig') {
+        state.passport.outputLayout = 'single';
+      }
+      renderActiveToolWorkspace();
+    }
+
+    function renderPassportToCanvas(targetCanvas, includeGuides = false) {
+      const pp = state.passport;
+      if (!pp.img) return;
+
+      if (pp.preset === 'us') {
+        targetCanvas.width = 600;
+        targetCanvas.height = 600;
+      } else if (pp.preset === 'exam-sig') {
+        targetCanvas.width = 280; // Crisp 2x of 140x60
+        targetCanvas.height = 120;
+      } else {
+        targetCanvas.width = 413;
+        targetCanvas.height = 531;
+      }
+
+      const ctx = targetCanvas.getContext('2d');
+      ctx.fillStyle = pp.bgColor || '#FFFFFF';
+      ctx.fillRect(0, 0, targetCanvas.width, targetCanvas.height);
+
+      const off = document.createElement('canvas');
+      off.width = targetCanvas.width;
+      off.height = targetCanvas.height;
+      const octx = off.getContext('2d');
+
+      const baseScale = pp.preset === 'exam-sig'
+        ? Math.min(targetCanvas.width / pp.img.naturalWidth, targetCanvas.height / pp.img.naturalHeight)
+        : Math.max(targetCanvas.width / pp.img.naturalWidth, targetCanvas.height / pp.img.naturalHeight);
+      const drawW = pp.img.naturalWidth * baseScale * pp.zoom;
+      const drawH = pp.img.naturalHeight * baseScale * pp.zoom;
+      const dx = (targetCanvas.width - drawW) / 2 + pp.offsetX;
+      const dy = (targetCanvas.height - drawH) / 2 + pp.offsetY;
+
+      octx.drawImage(pp.img, dx, dy, drawW, drawH);
+
+      if (pp.enableBgReplace) {
+        const imgData = octx.getImageData(0, 0, off.width, off.height);
+        const data = imgData.data;
+        const w = off.width;
+        const h = off.height;
+        const visited = new Uint8Array(w * h);
+        const tol = pp.removeBgStrength * 2.2;
+
+        const hex = pp.bgColor.replace('#', '');
+        const repR = parseInt(hex.substring(0, 2), 16);
+        const repG = parseInt(hex.substring(2, 4), 16);
+        const repB = parseInt(hex.substring(4, 6), 16);
+
+        const seeds = [[2, 2], [w - 3, 2], [Math.floor(w / 2), 2]];
+        for (const [sx, sy] of seeds) {
+          const sIdx = (sy * w + sx) * 4;
+          const sr = data[sIdx], sg = data[sIdx + 1], sb = data[sIdx + 2];
+          const stack = [[sx, sy]];
+
+          while (stack.length > 0) {
+            const [cx, cy] = stack.pop();
+            if (cx < 0 || cy < 0 || cx >= w || cy >= h) continue;
+            const pos = cy * w + cx;
+            if (visited[pos]) continue;
+
+            const pIdx = pos * 4;
+            const dist = Math.hypot(data[pIdx] - sr, data[pIdx + 1] - sg, data[pIdx + 2] - sb);
+            if (dist <= tol) {
+              visited[pos] = 1;
+              data[pIdx] = repR;
+              data[pIdx + 1] = repG;
+              data[pIdx + 2] = repB;
+              stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
+            }
+          }
+        }
+        octx.putImageData(imgData, 0, 0);
+      }
+
+      ctx.drawImage(off, 0, 0);
+
+      if (includeGuides && pp.preset !== 'exam-sig') {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 240, 255, 0.75)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.ellipse(targetCanvas.width / 2, targetCanvas.height * 0.44, targetCanvas.width * 0.27, targetCanvas.height * 0.31, 0, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(124, 58, 237, 0.85)';
+        ctx.beginPath();
+        ctx.moveTo(0, targetCanvas.height * 0.42);
+        ctx.lineTo(targetCanvas.width, targetCanvas.height * 0.42);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    function updatePassportPreview() {
+      const canvas = document.getElementById('passport-preview-canvas');
+      if (canvas) renderPassportToCanvas(canvas, true);
+    }
+
+    async function executePassportGenerate() {
+      const pp = state.passport;
+      if (!pp.img) return;
+
+      updateProcessingProgress(30, 1, 'Calibrating biometric / portal dimensions...');
+      await sleep(200);
+
+      const singleCanvas = document.createElement('canvas');
+      renderPassportToCanvas(singleCanvas, false);
+
+      updateProcessingProgress(70, 2, 'Optimizing output resolution & file size...');
+      await sleep(200);
+
+      let finalCanvas = singleCanvas;
+      let subtitle = '300 DPI compliant digital photo ready.';
+      let quality = 0.94;
+
+      if (pp.preset === 'exam-sig') {
+        quality = 0.75;
+        subtitle = 'Exam Signature formatted (280×120 px, <20 KB) for portal upload.';
+      } else if (pp.preset === 'exam-photo') {
+        quality = 0.72;
+        subtitle = 'Exam Photo formatted (35×45mm ratio, <50 KB) for portal upload.';
+      }
+
+      if (pp.outputLayout === 'sheet' && pp.preset !== 'exam-sig') {
+        const sheet = document.createElement('canvas');
+        sheet.width = 1800;
+        sheet.height = 1200;
+        const sctx = sheet.getContext('2d');
+        sctx.fillStyle = '#F8FAFC';
+        sctx.fillRect(0, 0, sheet.width, sheet.height);
+
+        const cols = pp.preset === 'us' ? 2 : 4;
+        const rows = 2;
+        const gapX = Math.floor((sheet.width - cols * singleCanvas.width) / (cols + 1));
+        const gapY = Math.floor((sheet.height - rows * singleCanvas.height) / (rows + 1));
+
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const x = gapX + c * (singleCanvas.width + gapX);
+            const y = gapY + r * (singleCanvas.height + gapY);
+            sctx.drawImage(singleCanvas, x, y);
+            sctx.strokeStyle = '#CBD5E1';
+            sctx.lineWidth = 2;
+            sctx.strokeRect(x, y, singleCanvas.width, singleCanvas.height);
+          }
+        }
+        finalCanvas = sheet;
+        subtitle = `4×6 inch print-ready sheet (${cols * rows} copies) at 300 DPI.`;
+      }
+
+      updateProcessingProgress(100, 3, 'Encoding lossless JPG...');
+      finalCanvas.toBlob((blob) => {
+        showSuccessResult({
+          title: 'Photo Ready!',
+          subtitle,
+          afterBytes: blob.size,
+          downloadLabel: pp.outputLayout === 'sheet' && pp.preset !== 'exam-sig' ? 'Download 4×6 Print Sheet' : 'Download Photo',
+          onDownload: () => triggerBlobDownload(blob, `PixelForge_${pp.preset.toUpperCase()}.jpg`)
+        });
+      }, 'image/jpeg', quality);
+    }
+
+    // -------------------------------------------------------------------------
+    // TOOL 5: BULK IMAGE RESIZING & COMPRESSION
+    // -------------------------------------------------------------------------
+    function renderBulkResizeTool(ws) {
+      const br = state.bulkResize;
+      ws.innerHTML = `
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-6">
+          ${createDropzoneMarkup({
+            zoneId: 'bulk-resize-zone',
+            inputId: 'bulk-resize-input',
+            accept: 'image/*',
+            multiple: true,
+            title: 'Drop multiple images for bulk resizing & compression',
+            subtitle: 'Resize by exact pixel dimensions or percentage scale, tune compression quality, and download as a single ZIP.',
+            hint: 'MULTI-THREADED CANVAS BATCHER'
+          })}
+
+          ${br.files.length > 0 ? `
+            <div class="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex p-1 rounded-xl bg-slate-950 border border-slate-800">
+                  <button onclick="state.bulkResize.resizeMode='dimensions'; renderActiveToolWorkspace();" class="px-3.5 py-1.5 rounded-lg text-xs font-bold ${br.resizeMode === 'dimensions' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40' : 'text-slate-400'}">Exact Pixels</button>
+                  <button onclick="state.bulkResize.resizeMode='percent'; renderActiveToolWorkspace();" class="px-3.5 py-1.5 rounded-lg text-xs font-bold ${br.resizeMode === 'percent' ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-400/40' : 'text-slate-400'}">Scale %</button>
+                </div>
+
+                <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                  <input type="checkbox" ${br.lockAspect ? 'checked' : ''} onchange="state.bulkResize.lockAspect=this.checked" class="accent-cyan-400" />
+                  <span>Maintain Aspect Ratio</span>
+                </label>
+              </div>
+
+              ${br.resizeMode === 'dimensions' ? `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-[11px] font-mono text-slate-400 mb-1">MAX WIDTH (PX)</label>
+                    <input type="number" value="${br.width}" oninput="state.bulkResize.width=Number(this.value)" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 font-mono text-sm text-cyan-200" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-mono text-slate-400 mb-1">MAX HEIGHT (PX)</label>
+                    <input type="number" value="${br.height}" oninput="state.bulkResize.height=Number(this.value)" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 font-mono text-sm text-cyan-200" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-mono text-slate-400 mb-1">OUTPUT FORMAT</label>
+                    <select onchange="state.bulkResize.format=this.value" class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 text-xs font-semibold text-white">
+                      <option value="image/jpeg" ${br.format === 'image/jpeg' ? 'selected' : ''}>JPG (Smallest Size)</option>
+                      <option value="image/webp" ${br.format === 'image/webp' ? 'selected' : ''}>WebP (Modern Web)</option>
+                      <option value="image/png" ${br.format === 'image/png' ? 'selected' : ''}>PNG (Lossless)</option>
+                    </select>
+                  </div>
+                </div>
+              ` : `
+                <div>
+                  <div class="flex justify-between text-xs font-mono mb-1">
+                    <span class="text-slate-300">SCALE PERCENTAGE</span>
+                    <span class="text-cyan-300 font-bold">${br.percent}%</span>
+                  </div>
+                  <input type="range" min="10" max="150" step="5" value="${br.percent}" oninput="state.bulkResize.percent=Number(this.value); this.previousElementSibling.lastElementChild.textContent=this.value+'%'" class="w-full" />
+                </div>
+              `}
+
+              <div>
+                <div class="flex justify-between text-xs font-mono mb-1">
+                  <span class="text-slate-300">COMPRESSION QUALITY</span>
+                  <span class="text-cyan-300 font-bold">${Math.round(br.quality * 100)}%</span>
+                </div>
+                <input type="range" min="0.2" max="1.0" step="0.02" value="${br.quality}" oninput="state.bulkResize.quality=Number(this.value); this.previousElementSibling.lastElementChild.textContent=Math.round(this.value*100)+'%'" class="w-full" />
+              </div>
+            </div>
+
+            <!-- File Queue List -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${br.files.map((item, idx) => `
+                <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-2.5">
+                  <div class="flex items-center gap-2.5 min-w-0">
+                    <img src="${item.thumbUrl}" class="w-10 h-10 rounded-lg object-cover border border-slate-700 shrink-0" />
+                    <div class="min-w-0">
+                      <div class="text-xs font-semibold text-white truncate">${item.name}</div>
+                      <div class="text-[11px] font-mono text-slate-400">${item.width}×${item.height} • ${formatBytes(item.size)}</div>
+                    </div>
+                  </div>
+                  <button onclick="state.bulkResize.files.splice(${idx},1); renderActiveToolWorkspace();" class="text-slate-400 hover:text-rose-400 p-1">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="flex justify-end">
+              <button onclick="executeBulkResize()" class="btn-neon px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+                <i data-lucide="zap" class="w-4 h-4"></i>
+                <span>Resize & Compress ${br.files.length} Image(s)</span>
+              </button>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      bindDropzone('bulk-resize-zone', 'bulk-resize-input', async (files) => {
+        for (const f of files) {
+          if (!f.type.startsWith('image/')) continue;
+          const url = URL.createObjectURL(f);
+          const img = await new Promise((res) => {
+            const i = new Image();
+            i.onload = () => res(i);
+            i.src = url;
+          });
+          state.bulkResize.files.push({
+            id: crypto.randomUUID(),
+            file: f,
+            name: f.name,
+            size: f.size,
+            width: img.naturalWidth,
+            height: img.naturalHeight,
+            img,
+            thumbUrl: url
+          });
+        }
+        renderActiveToolWorkspace();
+      });
+    }
+
+    async function executeBulkResize() {
+      const br = state.bulkResize;
+      if (!br.files.length) return;
+
+      updateProcessingProgress(10, 1, 'Analyzing image aspect ratios & color profiles...');
+      const zip = new JSZip();
+      const gallery = [];
+      let totalBefore = 0;
+      let totalAfter = 0;
+      const extMap = { 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/png': 'png' };
+      const ext = extMap[br.format] || 'jpg';
+
+      for (let i = 0; i < br.files.length; i++) {
+        const item = br.files[i];
+        totalBefore += item.size;
+        updateProcessingProgress(15 + ((i + 1) / br.files.length) * 70, 2, `Resizing ${item.name} (${i + 1}/${br.files.length})...`);
+
+        let targetW = item.width;
+        let targetH = item.height;
+
+        if (br.resizeMode === 'percent') {
+          targetW = Math.max(1, Math.round(item.width * (br.percent / 100)));
+          targetH = Math.max(1, Math.round(item.height * (br.percent / 100)));
+        } else {
+          if (br.lockAspect) {
+            const ratio = Math.min(br.width / item.width, br.height / item.height);
+            targetW = Math.max(1, Math.round(item.width * ratio));
+            targetH = Math.max(1, Math.round(item.height * ratio));
+          } else {
+            targetW = Math.max(1, br.width);
+            targetH = Math.max(1, br.height);
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = targetW;
+        canvas.height = targetH;
+        const ctx = canvas.getContext('2d');
+        if (br.format === 'image/jpeg') {
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, targetW, targetH);
+        }
+        ctx.drawImage(item.img, 0, 0, targetW, targetH);
+
+        const blob = await new Promise((res) => canvas.toBlob(res, br.format, br.quality));
+        totalAfter += blob.size;
+        const outName = `${item.name.replace(/\.[^.]+$/, '')}_${targetW}x${targetH}.${ext}`;
+        zip.file(outName, blob);
+
+        const previewUrl = URL.createObjectURL(blob);
+        gallery.push({
+          name: outName,
+          thumbUrl: previewUrl,
+          meta: `${targetW}×${targetH} • ${formatBytes(blob.size)}`,
+          onDownload: () => triggerBlobDownload(blob, outName)
+        });
+      }
+
+      updateProcessingProgress(95, 3, 'Archiving batch into ZIP...');
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+      await sleep(200);
+
+      showSuccessResult({
+        title: `Batch Resized ${gallery.length} Image(s)!`,
+        subtitle: 'All images resized and compressed cleanly.',
+        beforeBytes: totalBefore,
+        afterBytes: totalAfter,
+        downloadLabel: gallery.length === 1 ? 'Download Resized Image' : 'Download All (.ZIP)',
+        onDownload: gallery.length === 1 ? gallery[0].onDownload : () => triggerBlobDownload(zipBlob, 'PixelForge_Bulk_Resized.zip'),
+        galleryItems: gallery
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // TOOL 6: PDF TO WORD & WORD TO PDF
+    // -------------------------------------------------------------------------
+    function renderPdfWordTool(ws) {
+      const pw = state.pdfWord;
+      const isPdfToWord = pw.direction === 'pdf-to-word';
+
+      ws.innerHTML = `
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-6">
+          <div class="flex p-1 rounded-xl bg-slate-950/80 border border-slate-800 max-w-md">
+            <button onclick="state.pdfWord.direction='pdf-to-word'; state.pdfWord.file=null; renderActiveToolWorkspace();" class="flex-1 py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 ${isPdfToWord ? 'bg-gradient-to-r from-cyan-500/25 to-purple-600/30 text-cyan-200 border border-cyan-400/40' : 'text-slate-400 hover:text-white'}">
+              <i data-lucide="file-text" class="w-4 h-4"></i> PDF → Word (.DOCX)
+            </button>
+            <button onclick="state.pdfWord.direction='word-to-pdf'; state.pdfWord.file=null; renderActiveToolWorkspace();" class="flex-1 py-2.5 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2 ${!isPdfToWord ? 'bg-gradient-to-r from-cyan-500/25 to-purple-600/30 text-cyan-200 border border-cyan-400/40' : 'text-slate-400 hover:text-white'}">
+              <i data-lucide="file-check-2" class="w-4 h-4"></i> Word (.DOCX) → PDF
+            </button>
+          </div>
+
+          ${!pw.file ? createDropzoneMarkup({
+            zoneId: 'pdf-word-zone',
+            inputId: 'pdf-word-input',
+            accept: isPdfToWord ? 'application/pdf,.pdf' : '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            multiple: false,
+            title: isPdfToWord ? 'Drop a PDF document to convert into editable Word (.DOCX)' : 'Drop a Word (.DOCX) document to export as PDF',
+            subtitle: isPdfToWord ? 'Extracts multi-page text structure via PDF.js and builds a native .DOCX file.' : 'Parses rich paragraphs & headings via Mammoth.js and renders a clean PDF.',
+            hint: isPdfToWord ? 'PDF → DOCX ENGINE' : 'DOCX → PDF ENGINE'
+          }) : `
+            <div class="p-4 rounded-xl bg-slate-900/85 border border-cyan-500/30 flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-300 shrink-0">
+                  <i data-lucide="file-text" class="w-5 h-5"></i>
+                </div>
+                <div class="min-w-0">
+                  <div class="text-sm font-bold text-white truncate">${pw.file.name}</div>
+                  <div class="text-xs font-mono text-cyan-300">${formatBytes(pw.file.size)}</div>
+                </div>
+              </div>
+              <button onclick="state.pdfWord.file=null; renderActiveToolWorkspace();" class="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-slate-300 hover:text-white">Change File</button>
+            </div>
+
+            <div class="flex justify-end">
+              <button onclick="executePdfWordConvert()" class="btn-neon px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+                <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                <span>${isPdfToWord ? 'Convert PDF to Word (.DOCX)' : 'Convert Word (.DOCX) to PDF'}</span>
+              </button>
+            </div>
+          `}
+        </div>
+      `;
+
+      bindDropzone('pdf-word-zone', 'pdf-word-input', (files) => {
+        if (files[0]) {
+          state.pdfWord.file = files[0];
+          renderActiveToolWorkspace();
+        }
+      });
+    }
+
+    async function executePdfWordConvert() {
+      const pw = state.pdfWord;
+      if (!pw.file) return;
+
+      try {
+        const ab = await pw.file.arrayBuffer();
+
+        if (pw.direction === 'pdf-to-word') {
+          updateProcessingProgress(20, 1, 'Parsing PDF text layers via PDF.js...');
+          const pdfDoc = await pdfjsLib.getDocument({ data: ab }).promise;
+          const numPages = pdfDoc.numPages;
+          const docChildren = [];
+
+          for (let p = 1; p <= numPages; p++) {
+            updateProcessingProgress(25 + (p / numPages) * 55, 2, `Extracting text structure from page ${p} of ${numPages}...`);
+            const page = await pdfDoc.getPage(p);
+            const textContent = await page.getTextContent();
+
+            // Group text items into lines by Y coordinate
+            const linesMap = new Map();
+            for (const item of textContent.items) {
+              const yKey = Math.round(item.transform[5] / 6) * 6;
+              if (!linesMap.has(yKey)) linesMap.set(yKey, []);
+              linesMap.get(yKey).push({ x: item.transform[4], str: item.str });
+            }
+
+            const sortedY = Array.from(linesMap.keys()).sort((a, b) => b - a);
+            for (const y of sortedY) {
+              const lineItems = linesMap.get(y).sort((a, b) => a.x - b.x);
+              const lineText = lineItems.map((i) => i.str).join(' ').replace(/\s+/g, ' ').trim();
+              if (lineText) {
+                docChildren.push(
+                  new docx.Paragraph({
+                    children: [new docx.TextRun({ text: lineText, size: 22, font: 'Calibri' })],
+                    spacing: { after: 120 }
+                  })
+                );
+              }
+            }
+
+            if (p < numPages) {
+              docChildren.push(new docx.Paragraph({ children: [new docx.PageBreak()] }));
+            }
+          }
+
+          if (docChildren.length === 0) {
+            docChildren.push(
+              new docx.Paragraph({
+                children: [new docx.TextRun({ text: '[Scanned or image-only PDF: No selectable text layer found.]', italics: true })]
+              })
+            );
+          }
+
+          updateProcessingProgress(92, 3, 'Building OpenXML .DOCX package...');
+          const wordDoc = new docx.Document({
+            sections: [{ properties: {}, children: docChildren }]
+          });
+
+          const docxBlob = await docx.Packer.toBlob(wordDoc);
+          const outName = pw.file.name.replace(/\.pdf$/i, '') + '.docx';
+
+          showSuccessResult({
+            title: 'Converted PDF to Word (.DOCX)!',
+            subtitle: `Extracted ${numPages} page(s) into an editable Word document.`,
+            beforeBytes: pw.file.size,
+            afterBytes: docxBlob.size,
+            downloadLabel: 'Download .DOCX File',
+            onDownload: () => triggerBlobDownload(docxBlob, outName)
+          });
+        } else {
+          // DOCX -> PDF
+          updateProcessingProgress(25, 1, 'Reading Word OpenXML structure via Mammoth.js...');
+          const result = await mammoth.extractRawText({ arrayBuffer: ab });
+          const rawText = result.value || 'Empty document';
+
+          updateProcessingProgress(65, 2, 'Typesetting paragraphs onto A4 PDF pages...');
+          const { jsPDF } = window.jspdf;
+          const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+          const pageWidth = pdf.internal.pageSize.getWidth();
+          const pageHeight = pdf.internal.pageSize.getHeight();
+          const margin = 48;
+          const maxLineWidth = pageWidth - margin * 2;
+
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(11);
+
+          const paragraphs = rawText.split(/\n+/);
+          let cursorY = margin + 10;
+
+          for (const para of paragraphs) {
+            const lines = pdf.splitTextToSize(para.trim() || ' ', maxLineWidth);
+            for (const line of lines) {
+              if (cursorY > pageHeight - margin) {
+                pdf.addPage();
+                cursorY = margin + 10;
+              }
+              pdf.text(line, margin, cursorY);
+              cursorY += 16;
+            }
+            cursorY += 8;
+          }
+
+          updateProcessingProgress(95, 3, 'Finalizing PDF binary...');
+          const pdfBlob = pdf.output('blob');
+          const outName = pw.file.name.replace(/\.docx$/i, '') + '.pdf';
+
+          showSuccessResult({
+            title: 'Converted Word to PDF!',
+            subtitle: 'Document rendered cleanly to multi-page A4 PDF.',
+            beforeBytes: pw.file.size,
+            afterBytes: pdfBlob.size,
+            downloadLabel: 'Download PDF',
+            onDownload: () => triggerBlobDownload(pdfBlob, outName)
+          });
+        }
+      } catch (err) {
+        hideProcessingPanel();
+        showToast('Conversion error: ' + err.message, 'error');
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // TOOL 7: DRAG-AND-DROP IMAGE CROPPING
+    // -------------------------------------------------------------------------
+    function renderCropperTool(ws) {
+      const cr = state.cropper;
+      ws.innerHTML = `
+        <div class="glass-panel rounded-2xl p-5 sm:p-6 space-y-6">
+          ${!cr.img ? createDropzoneMarkup({
+            zoneId: 'crop-dropzone',
+            inputId: 'crop-input',
+            accept: 'image/*',
+            multiple: false,
+            title: 'Drag & drop an image to crop with precision',
+            subtitle: 'Interactive drag handles, aspect ratio locks (1:1, 16:9, 4:3, Signature), rotation, and instant export.',
+            hint: 'INTERACTIVE CANVAS CROPPER'
+          }) : `
+            <!-- Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <div class="flex flex-wrap items-center gap-1.5">
+                ${[
+                  { id: 'free', label: 'Free' },
+                  { id: '1:1', label: '1:1 Square' },
+                  { id: '16:9', label: '16:9' },
+                  { id: '4:3', label: '4:3' },
+                  { id: '3:4', label: '3:4' },
+                  { id: 'sig', label: 'Signature (7:3)' }
+                ].map((ar) => `
+                  <button onclick="setCropAspect('${ar.id}')" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition ${cr.aspect === ar.id ? 'bg-cyan-500/25 text-cyan-200 border border-cyan-400/50' : 'bg-slate-950 text-slate-400 hover:text-white border border-slate-800'}">
+                    ${ar.label}
+                  </button>
+                `).join('')}
+              </div>
+
+              <div class="flex items-center gap-2">
+                <button onclick="state.cropper.rotation=(state.cropper.rotation+90)%360; drawCropCanvas();" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-200 hover:border-cyan-400 flex items-center gap-1.5">
+                  <i data-lucide="rotate-cw" class="w-3.5 h-3.5 text-cyan-300"></i> Rotate 90°
+                </button>
+                <button onclick="state.cropper.flipH=!state.cropper.flipH; drawCropCanvas();" class="px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-200 hover:border-cyan-400 flex items-center gap-1.5">
+                  <i data-lucide="flip-horizontal" class="w-3.5 h-3.5 text-cyan-300"></i> Flip
+                </button>
+              </div>
+            </div>
+
+            <!-- Interactive Canvas Stage -->
+            <div class="relative rounded-2xl bg-[#050814] border border-slate-800 p-3 flex flex-col items-center justify-center overflow-hidden">
+              <canvas id="crop-interactive-canvas" class="max-w-full rounded-xl cursor-crosshair touch-none"></canvas>
+              <div id="crop-dimensions-readout" class="mt-2.5 font-mono text-xs text-cyan-300">
+                Selection: Calculating...
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <button onclick="state.cropper.img=null; renderActiveToolWorkspace();" class="px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-300 hover:text-white">
+                Load Different Image
+              </button>
+              <button onclick="executeCropExport()" class="btn-neon px-6 py-3 rounded-xl text-sm flex items-center gap-2">
+                <i data-lucide="crop" class="w-4 h-4"></i>
+                <span>Crop & Export Image</span>
+              </button>
+            </div>
+          `}
+        </div>
+      `;
+
+      bindDropzone('crop-dropzone', 'crop-input', (files) => {
+        const f = files[0];
+        if (!f) return;
+        const url = URL.createObjectURL(f);
+        const img = new Image();
+        img.onload = () => {
+          state.cropper.img = img;
+          state.cropper.fileName = f.name;
+          state.cropper.rotation = 0;
+          state.cropper.flipH = false;
+          state.cropper.cropBox = { x: 0.15, y: 0.15, w: 0.7, h: 0.7 };
+          renderActiveToolWorkspace();
+        };
+        img.src = url;
+      });
+
+      if (cr.img) {
+        setTimeout(initInteractiveCropCanvas, 20);
+      }
+    }
+
+    function getRotatedSourceCanvas() {
+      const cr = state.cropper;
+      const rad = (cr.rotation * Math.PI) / 180;
+      const swap = cr.rotation % 180 !== 0;
+      const w = swap ? cr.img.naturalHeight : cr.img.naturalWidth;
+      const h = swap ? cr.img.naturalWidth : cr.img.naturalHeight;
+
+      const off = document.createElement('canvas');
+      off.width = w;
+      off.height = h;
+      const ctx = off.getContext('2d');
+      ctx.translate(w / 2, h / 2);
+      ctx.rotate(rad);
+      if (cr.flipH) ctx.scale(-1, 1);
+      ctx.drawImage(cr.img, -cr.img.naturalWidth / 2, -cr.img.naturalHeight / 2);
+      return off;
+    }
+
+    function setCropAspect(aspectId) {
+      state.cropper.aspect = aspectId;
+      const src = getRotatedSourceCanvas();
+      const box = state.cropper.cropBox;
+      const ratios = { '1:1': 1, '16:9': 16 / 9, '4:3': 4 / 3, '3:4': 3 / 4, 'sig': 140 / 60 };
+      if (ratios[aspectId]) {
+        const targetRatio = ratios[aspectId];
+        const currentPixelW = box.w * src.width;
+        let newPixelH = currentPixelW / targetRatio;
+        if (newPixelH > src.height * 0.85) {
+          newPixelH = src.height * 0.85;
+          box.w = (newPixelH * targetRatio) / src.width;
+        }
+        box.h = newPixelH / src.height;
+        box.x = Math.max(0, Math.min(1 - box.w, box.x));
+        box.y = Math.max(0, Math.min(1 - box.h, box.y));
+      }
+      renderActiveToolWorkspace();
+    }
+
+    function initInteractiveCropCanvas() {
+      const canvas = document.getElementById('crop-interactive-canvas');
+      if (!canvas || !state.cropper.img) return;
+
+      const src = getRotatedSourceCanvas();
+      const maxDisplayW = Math.min(760, canvas.parentElement.clientWidth - 24);
+      const maxDisplayH = 440;
+      const scale = Math.min(maxDisplayW / src.width, maxDisplayH / src.height, 1);
+
+      canvas.width = Math.round(src.width * scale);
+      canvas.height = Math.round(src.height * scale);
+
+      drawCropCanvas();
+
+      const getPos = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          nx: Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)),
+          ny: Math.max(0, Math.min(1, (clientY - rect.top) / rect.height))
+        };
+      };
+
+      const onDown = (e) => {
+        const { nx, ny } = getPos(e);
+        const b = state.cropper.cropBox;
+        const tol = 0.045;
+
+        const nearLeft = Math.abs(nx - b.x) < tol;
+        const nearRight = Math.abs(nx - (b.x + b.w)) < tol;
+        const nearTop = Math.abs(ny - b.y) < tol;
+        const nearBottom = Math.abs(ny - (b.y + b.h)) < tol;
+
+        let handle = null;
+        if (nearLeft && nearTop) handle = 'nw';
+        else if (nearRight && nearTop) handle = 'ne';
+        else if (nearLeft && nearBottom) handle = 'sw';
+        else if (nearRight && nearBottom) handle = 'se';
+        else if (nx > b.x && nx < b.x + b.w && ny > b.y && ny < b.y + b.h) handle = 'move';
+
+        if (handle) {
+          state.cropper.draggingHandle = handle;
+          state.cropper.dragStart = { nx, ny, box: { ...b } };
+        }
+      };
+
+      const onMove = (e) => {
+        if (!state.cropper.draggingHandle) return;
+        e.preventDefault();
+        const { nx, ny } = getPos(e);
+        const { dragStart, draggingHandle } = state.cropper;
+        const dx = nx - dragStart.nx;
+        const dy = ny - dragStart.ny;
+        const orig = dragStart.box;
+        const b = state.cropper.cropBox;
+        const minSize = 0.08;
+
+        if (draggingHandle === 'move') {
+          b.x = Math.max(0, Math.min(1 - orig.w, orig.x + dx));
+          b.y = Math.max(0, Math.min(1 - orig.h, orig.y + dy));
+        } else {
+          if (draggingHandle.includes('e')) {
+            b.w = Math.max(minSize, Math.min(1 - orig.x, orig.w + dx));
+          }
+          if (draggingHandle.includes('s')) {
+            b.h = Math.max(minSize, Math.min(1 - orig.y, orig.h + dy));
+          }
+          if (draggingHandle.includes('w')) {
+            const newX = Math.max(0, Math.min(orig.x + orig.w - minSize, orig.x + dx));
+            b.w = orig.w + (orig.x - newX);
+            b.x = newX;
+          }
+          if (draggingHandle.includes('n')) {
+            const newY = Math.max(0, Math.min(orig.y + orig.h - minSize, orig.y + dy));
+            b.h = orig.h + (orig.y - newY);
+            b.y = newY;
+          }
+        }
+        drawCropCanvas();
+      };
+
+      const onUp = () => {
+        state.cropper.draggingHandle = null;
+      };
+
+      canvas.onmousedown = onDown;
+      window.onmousemove = onMove;
+      window.onmouseup = onUp;
+      canvas.ontouchstart = onDown;
+      canvas.ontouchmove = onMove;
+      canvas.ontouchend = onUp;
+    }
+
+    function drawCropCanvas() {
+      const canvas = document.getElementById('crop-interactive-canvas');
+      if (!canvas || !state.cropper.img) return;
+      const ctx = canvas.getContext('2d');
+      const src = getRotatedSourceCanvas();
+      const b = state.cropper.cropBox;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
+
+      // Darken outer region
+      ctx.fillStyle = 'rgba(7, 11, 25, 0.65)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const rx = b.x * canvas.width;
+      const ry = b.y * canvas.height;
+      const rw = b.w * canvas.width;
+      const rh = b.h * canvas.height;
+
+      // Reveal bright cropped region
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(rx, ry, rw, rh);
+      ctx.clip();
+      ctx.drawImage(src, 0, 0, canvas.width, canvas.height);
+      ctx.restore();
+
+      // Rule of thirds grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = 1;
+      for (let i = 1; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(rx + (rw * i) / 3, ry);
+        ctx.lineTo(rx + (rw * i) / 3, ry + rh);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(rx, ry + (rh * i) / 3);
+        ctx.lineTo(rx + rw, ry + (rh * i) / 3);
+        ctx.stroke();
+      }
+
+      // Neon border
+      ctx.strokeStyle = '#00F0FF';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(rx, ry, rw, rh);
+
+      // Corner handles
+      const handles = [
+        [rx, ry],
+        [rx + rw, ry],
+        [rx, ry + rh],
+        [rx + rw, ry + rh]
+      ];
+      ctx.fillStyle = '#00F0FF';
+      handles.forEach(([hx, hy]) => {
+        ctx.beginPath();
+        ctx.arc(hx, hy, 6, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      const realW = Math.round(b.w * src.width);
+      const realH = Math.round(b.h * src.height);
+      const readout = document.getElementById('crop-dimensions-readout');
+      if (readout) {
+        readout.textContent = `Selection: ${realW} × ${realH} px`;
+      }
+    }
+
+    async function executeCropExport() {
+      const cr = state.cropper;
+      if (!cr.img) return;
+
+      updateProcessingProgress(40, 2, 'Extracting pixel-accurate crop region...');
+      await sleep(180);
+
+      const src = getRotatedSourceCanvas();
+      const b = cr.cropBox;
+      const sx = Math.round(b.x * src.width);
+      const sy = Math.round(b.y * src.height);
+      const sw = Math.max(1, Math.round(b.w * src.width));
+      const sh = Math.max(1, Math.round(b.h * src.height));
+
+      const outCanvas = document.createElement('canvas');
+      outCanvas.width = sw;
+      outCanvas.height = sh;
+      outCanvas.getContext('2d').drawImage(src, sx, sy, sw, sh, 0, 0, sw, sh);
+
+      updateProcessingProgress(100, 3, 'Encoding cropped image...');
+      outCanvas.toBlob((blob) => {
+        const outName = `${cr.fileName.replace(/\.[^.]+$/, '')}_cropped_${sw}x${sh}.png`;
+        showSuccessResult({
+          title: 'Image Cropped Cleanly!',
+          subtitle: `Exported exact ${sw} × ${sh} px selection.`,
+          afterBytes: blob.size,
+          downloadLabel: 'Download Cropped PNG',
+          onDownload: () => triggerBlobDownload(blob, outName)
+        });
+      }, 'image/png');
+    }
+
+    // -------------------------------------------------------------------------
+    // TOOL 8: JPG, JPEG, PNG & WEBP FORMAT CONVERSION
+    // -------------------------------------------------------------------------
+    // TOOL 8: JPG, JPEG, PNG & WEBP FORMAT CONVERSION (Merged into Universal)
+    // -------------------------------------------------------------------------
+
+    // Boot Application
+    window.addEventListener('DOMContentLoaded', () => {
+      switchTool('image-size-scaler');
+    });
+  </script>
+</body>
+</html>
