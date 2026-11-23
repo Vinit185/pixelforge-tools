@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Free online image resizer, compressor, converter and PDF tools. Files stay on your device.">
+  <meta name="theme-color" content="#101827">
+  <title>PixelForge — Image & PDF Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+<header class="topbar"><a class="brand" href="#"><span class="brand-mark">P</span> PixelForge</a><nav><a href="#tools">Tools</a><a href="#how">How it works</a><a href="#privacy">Privacy</a></nav><a class="nav-cta" href="#workspace">Start free <span>↗</span></a></header>
+<main>
+<section class="hero">
+  <div class="hero-glow"></div><div class="eyebrow"><span class="live-dot"></span> FREE ONLINE IMAGE & PDF WORKSPACE</div>
+  <h1>Make every file<br><span>fit perfectly.</span></h1>
+  <p class="hero-copy">Resize, compress and convert images or PDFs in seconds. Simple tools, clean results, and your files stay on your device.</p>
+  <div class="hero-actions"><a class="primary-btn" href="#workspace">Open the tools <span>→</span></a><div class="trust"><span>✓ No signup</span><span>✓ No watermark</span><span>✓ Private processing</span></div></div>
+  <div class="hero-art" aria-hidden="true"><div class="float-card card-a"><div class="mini-icon purple">▧</div><b>IMAGE</b><small>JPG · PNG · WEBP</small></div><div class="file-stack"><div class="file-back"></div><div class="file-front"><div class="file-fold"></div><div class="pdf-label">PDF</div><div class="file-lines"></div><div class="file-lines short"></div><div class="file-lines"></div></div><div class="spark">✦</div></div><div class="float-card card-b"><div class="mini-icon green">↘</div><b>Smaller size</b><small>Same workflow. Less weight.</small></div><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div></div>
+</section>
+<section class="workspace-section" id="workspace">
+  <div class="section-heading"><div><div class="eyebrow dark">YOUR FILE WORKSPACE</div><h2>What would you like to do?</h2><p>Choose a tool, add your file, and download the result.</p></div><div class="local-pill"><span class="live-dot"></span> Runs locally in your browser</div></div>
+  <div class="tool-tabs" id="tools">
+    <button class="tab active" data-tool="image">▧ <span>Image tools</span></button><button class="tab" data-tool="pdf">▤ <span>PDF tools</span></button>
+  </div>
+  <div class="tool-panel">
+    <div class="tool-picker" id="image-picker">
+      <button class="tool-choice selected" data-mode="resize"><span class="choice-icon">↗</span><b>Resize image</b><small>Change width and height</small></button>
+      <button class="tool-choice" data-mode="compress"><span class="choice-icon">⇣</span><b>Compress image</b><small>Reduce file size</small></button>
+      <button class="tool-choice" data-mode="convert"><span class="choice-icon">⇄</span><b>Convert image</b><small>JPG, PNG, WebP</small></button>
+    </div>
+    <div class="tool-picker hidden" id="pdf-picker">
+      <button class="tool-choice selected" data-mode="pdf-compress"><span class="choice-icon">⇣</span><b>Compress PDF</b><small>Reduce PDF size</small></button>
+      <button class="tool-choice" data-mode="pdf-to-image"><span class="choice-icon">▧</span><b>PDF to image</b><small>Export pages as JPG/PNG</small></button>
+      <button class="tool-choice" data-mode="image-to-pdf"><span class="choice-icon">▤</span><b>Images to PDF</b><small>Combine images into a PDF</small></button>
+    </div>
+    <div class="work-grid">
+      <div class="upload-column">
+        <label class="upload-box" id="dropzone" for="fileInput"><input id="fileInput" type="file" multiple accept="image/*,.pdf">
+          <span class="upload-symbol">↑</span><b>Drop your files here</b><span>or <u>browse files</u> from your device</span><small id="acceptText">JPG, JPEG, PNG, WebP · Multiple files supported</small>
+        </label>
+        <div class="file-list" id="fileList"><div class="empty-state"><span>▤</span><b>No files selected yet</b><small>Your selected files will appear here.</small></div></div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-head"><div><span class="eyebrow dark">CUSTOMIZE</span><h3 id="settingsTitle">Resize settings</h3></div><span class="settings-number">01</span></div>
+        <div id="imageSettings">
+          <div class="field-row"><label>Width <div class="input-unit"><input id="width" type="number" min="1" max="12000" value="1200"><span>px</span></div></label><label>Height <div class="input-unit"><input id="height" type="number" min="1" max="12000" value="1200"><span>px</span></div></label></div>
+          <label class="check-line"><input type="checkbox" id="keepRatio" checked><span>Keep aspect ratio</span></label>
+          <label class="field-label" for="quality">Image quality <strong id="qualityValue">82%</strong></label><input id="quality" type="range" min="10" max="100" value="82">
+          <label class="field-label" for="imageFormat">Output format</label><select id="imageFormat"><option value="image/jpeg">JPG / JPEG</option><option value="image/png">PNG</option><option value="image/webp">WebP</option></select>
+        </div>
+        <div id="pdfSettings" class="hidden">
+          <label class="field-label" for="dpi">PDF output quality (DPI)</label><select id="dpi"><option value="150">150 DPI · Balanced</option><option value="120">120 DPI · Smaller file</option><option value="96">96 DPI · Smallest file</option><option value="200">200 DPI · Higher quality</option></select>
+          <p class="hint" id="pdfHint">PDF compression rebuilds pages as images. This can reduce size, but selectable text, links, forms and vector detail may be flattened.</p>
+          <label class="field-label" for="pdfFormat" id="pdfFormatLabel">Page image format</label><select id="pdfFormat"><option value="image/jpeg">JPG</option><option value="image/png">PNG</option></select>
+          <label class="field-label" for="pageWidth">PDF page width (optional)</label><select id="pageWidth"><option value="original">Keep original page size</option><option value="a4">A4</option><option value="letter">US Letter</option></select>
+        </div>
+        <button class="process-btn" id="processBtn" disabled>Choose files to continue <span>→</span></button>
+        <p class="secure-note">♢ Your files are processed on this device. They are not uploaded.</p>
+      </div>
+    </div>
+    <div class="results hidden" id="results"><div class="results-head"><div><span class="eyebrow dark">ALL DONE</span><h3>Your files are ready</h3></div><button class="download-all" id="downloadAll">Download all ↓</button></div><div id="resultList"></div></div>
+  </div>
+</section>
+<section class="features" id="how"><div class="eyebrow dark">MADE TO BE SIMPLE</div><h2>Everything you need.<br><span>Nothing you don't.</span></h2><div class="feature-grid"><article><div class="feature-icon violet">↗</div><h3>Resize precisely</h3><p>Set exact pixel dimensions and keep the original proportions when you need them.</p></article><article><div class="feature-icon mint">⇣</div><h3>Make files lighter</h3><p>Adjust image quality or rebuild PDF pages at a lower resolution to reduce file size.</p></article><article><div class="feature-icon amber">⇄</div><h3>Convert formats</h3><p>Move between JPG, PNG and WebP, or turn image collections into a PDF.</p></article><article><div class="feature-icon blue">⌑</div><h3>Privacy by design</h3><p>Processing happens in your browser. Your files are not sent to a PixelForge server.</p></article></div></section>
+<section class="privacy-banner" id="privacy"><div class="privacy-icon">◇</div><div><h2>Your files stay yours.</h2><p>PixelForge processes files locally in your browser. Nothing is uploaded or stored by us. Keep this page open while processing.</p></div><span class="privacy-check">✓ Local processing</span></section>
+</main>
+<footer><a class="brand" href="#"><span class="brand-mark">P</span> PixelForge</a><span>Free tools for everyday files.</span><span>© <span id="year"></span> PixelForge</span></footer>
+<div class="toast" id="toast" role="status"></div>
+<script src="app.js"></script>
+</body></html>
